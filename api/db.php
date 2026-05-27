@@ -14,18 +14,20 @@ function input_json() {
 }
 
 function db() {
-  $host = 'localhost';
-  $dbname = 'zlar';
+  $host = 'mysql.railway.internal';
+  $dbname = 'railway';
   $user = 'root';
-  $pass = '';
+  $pass = 'XXBQnngwHOHfgvHgBjEukDjRcfcLrzBi';
+  $port = 3306;
 
   try {
-    return new PDO(
-      "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-      $user,
-      $pass,
-      [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-    );
+        return new PDO(
+            "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+            $user,
+            $pass,
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+        );
+        
   } catch (Throwable $e) {
     json_response([
       'ok' => false,
