@@ -14,31 +14,29 @@ function input_json() {
 }
 
 function db() {
-  $host = 'zephyr.proxy.rlwy.net';
-  $dbname = 'railway';
-  $user = 'root';
-  $pass = 'XXBQnngwH0HfgvHgBjEukDjRcfcLrzBi';
-  $port = 3306;
+  $url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL');
+  if ($url) {
+    $parts = parse_url($url);
+    $host = $parts['host'] ?? 'localhost';
+    $dbname = isset($parts['path']) ? ltrim($parts['path'], '/') : 'railway';
+    $user = $parts['user'] ?? 'root';
+    $pass = $parts['pass'] ?? '';
+    $port = $parts['port'] ?? '3306';
+  } else {
+    $host = getenv('MYSQLHOST') ?: 'localhost';
+    $dbname = getenv('MYSQLDATABASE') ?: 'zlar';
+    $user = getenv('MYSQLUSER') ?: 'root';
+    $pass = getenv('MYSQLPASSWORD') ?: '';
+    $port = getenv('MYSQLPORT') ?: '3306';
+  }
+
   try {
-        return new PDO(
-            "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
-            $user,
-            $pass,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
-  $user = 'root';
-  $pass = 'XXBQnngwHOHfgvHgBjEukDjRcfcLrzBi';
-  $port = 3306;
-
-  try {
-        return new PDO(
-            "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
-            $user,
-            $pass,
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
-        );
-
+    return new PDO(
+      "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4",
+      $user,
+      $pass,
+      [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
+    );
   } catch (Throwable $e) {
     json_response([
       'ok' => false,
