@@ -27,11 +27,11 @@ function db() {
     $pass = $parts['pass'] ?? '';
     $port = $parts['port'] ?? '3306';
   } else {
-    $host = getenv('MYSQLHOST') ?: getenv('MYSQL_HOST') ?: 'localhost';
-    $dbname = getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: 'zlar';
+    $host = getenv('MYSQLHOST') ?: getenv('MYSQL_HOST') ?: 'zephyr.proxy.rlwy.net';
+    $dbname = getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: 'railway';
     $user = getenv('MYSQLUSER') ?: getenv('MYSQL_USER') ?: 'root';
     $pass = getenv('MYSQLPASSWORD') ?: getenv('MYSQL_ROOT_PASSWORD') ?: getenv('MYSQL_PASSWORD') ?: '';
-    $port = getenv('MYSQLPORT') ?: getenv('MYSQL_PORT') ?: '3306';
+    $port = getenv('MYSQLPORT') ?: getenv('MYSQL_PORT') ?: '33060';
   }
 
   try {
@@ -44,7 +44,7 @@ function db() {
   } catch (Throwable $e) {
     json_response([
       'ok' => false,
-      'message' => 'Banco de dados indisponivel. Configure api/db.php com seus dados do MySQL.',
+      'message' => 'Banco de dados indisponivel. Conexao tentada em ' . $host . ':' . $port . ' / banco ' . $dbname . '.',
       'debug' => $e->getMessage(),
       'connection' => [
         'host' => $host,
