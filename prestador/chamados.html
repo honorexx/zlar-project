@@ -1,0 +1,20 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chamados do prestador | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+<body>
+  <header class="zlar-header"><a class="zlar-logo" href="painel.html"><span class="brand-lockup"><img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar"><span class="brand-text"><span>ZLAR</span><small>Prestador</small></span></span></a><nav class="header-nav"><a href="painel.html">Painel</a><a class="active" href="chamados.html">Chamados</a><a href="avaliacoes.html">Avaliacoes</a><a href="perfil.html">Perfil</a></nav></header>
+  <main class="page-wrap"><div class="page-title-block"><div class="page-tag">Prestador</div><h1 class="page-title">Chamados recebidos</h1><p class="page-subtitle">Aparecem somente chamados da sua area de atendimento: <strong id="prestador-servico-atual">carregando...</strong></p></div><section class="card"><div class="workflow-steps"><span>1. Aceitar chamado</span><span>2. Iniciar servico</span><span>3. Morador finaliza</span><span>4. Informar valor e Pix</span></div></section><section class="card payment-panel" id="paymentPanel"><div class="section-label">Solicitar pagamento</div><input type="hidden" id="pagamento-solicitacao-id"><div class="form-grid"><div class="field"><label>Valor do servico</label><input type="text" id="pagamento-valor" placeholder="Ex.: 180,00"></div><div class="field"><label>Chave Pix</label><input type="text" id="pagamento-pix" placeholder="CPF, e-mail, telefone ou chave aleatoria"></div><div class="field col-span-2"><label>Observacao</label><textarea id="pagamento-observacao" placeholder="Ex.: Limpeza realizada conforme combinado"></textarea></div></div><div class="actions-row actions-row-end"><button class="btn btn-ghost" onclick="fecharPainelPagamento()">Cancelar</button><button class="btn btn-primary" onclick="enviarSolicitacaoPagamento()">Enviar para o morador</button></div></section><section class="card table-card"><table><thead><tr><th>Morador</th><th>Servico</th><th>Data</th><th>Endereco</th><th>Status</th><th>Acao</th></tr></thead><tbody id="tbChamados"><tr><td colspan="6"><div class="empty-state"><h3>Nenhum chamado recebido</h3><p>As solicitacoes compatíveis aparecem aqui.</p></div></td></tr></tbody></table></section></main>
+  <script src="../assets/js/script.js"></script>
+</body>
+</html>
+
+
+
+
