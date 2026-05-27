@@ -1,0 +1,10 @@
+{
+  "name": "zlar/plataforma",
+  "description": "Plataforma web Zlar em PHP e MySQL.",
+  "type": "project",
+  "require": {
+    "php": ">=8.1",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*"
+  }
+}
