@@ -1,6 +1,3 @@
-CREATE DATABASE IF NOT EXISTS zlar CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE zlar;
-
 DROP TABLE IF EXISTS recuperacoes_senha;
 DROP TABLE IF EXISTS admin_acessos;
 DROP TABLE IF EXISTS chamados_suporte;
