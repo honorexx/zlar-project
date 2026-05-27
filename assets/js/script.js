@@ -407,6 +407,7 @@ function renderAdminMoradores() {
       tb.innerHTML = moradores.map(function(m) {
         return '<tr><td><strong>' + esc(m.nome) + '</strong></td><td>' + esc(m.email) + '</td><td>' + esc(m.telefone || '-') + '</td><td>' + esc(m.cpf || '-') + '</td><td>' + badgeUsuario(m.status) + '</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarAdminUsuario(\'morador\',' + m.id + ')">Editar</button><button class="btn btn-danger" onclick="excluirAdminUsuario(\'morador\',' + m.id + ')">Excluir</button></div></td></tr>';
       }).join('');
+      applyResponsiveTableLabels();
     })
     .catch(function(error) { showToast(error.message, 'error'); });
 }
@@ -422,6 +423,7 @@ function renderAdminPrestadores() {
       tb.innerHTML = prestadoresLocal.map(function(p) {
         return '<tr><td><strong>' + esc(p.nome) + '</strong><br><span class="td-muted">' + esc(p.email) + '</span></td><td>' + esc(p.servico || '-') + '</td><td>' + esc(p.telefone || '-') + '</td><td>' + badgeUsuario(p.status) + '</td><td>' + badgeAprovacao(p.status_aprovacao) + '</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarAdminUsuario(\'prestador\',' + p.id + ')">Editar</button><button class="btn btn-danger" onclick="excluirAdminUsuario(\'prestador\',' + p.id + ')">Excluir</button></div></td></tr>';
       }).join('');
+      applyResponsiveTableLabels();
     })
     .catch(function(error) { showToast(error.message, 'error'); });
 }
@@ -529,6 +531,7 @@ function renderChamadosPrestador() {
   tb.innerHTML = compativeis.map(function(s) {
     return '<tr><td>' + esc(s.morador) + '</td><td>' + esc(s.categoria) + '</td><td>' + esc(s.data || '-') + '</td><td>' + esc(s.endereco) + '</td><td><span class="badge badge-warn">' + esc(statusLabel(s.status)) + '</span></td><td>' + actionPrestador(s) + '</td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function renderHistoricoMorador() {
@@ -539,6 +542,7 @@ function renderHistoricoMorador() {
   tb.innerHTML = solicitacoes.map(function(s) {
     return '<tr><td>' + esc(s.categoria) + '</td><td>' + esc(s.data || '-') + '</td><td><span class="badge badge-warn">' + esc(statusLabel(s.status)) + '</span></td><td>' + esc(s.prestador || 'A definir') + '</td><td>' + prestadorInfoHtml(s) + '</td><td>' + actionMorador(s) + '</td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function prestadorInfoHtml(s) {
@@ -835,6 +839,7 @@ function renderMoradorAvaliacoes() {
   tb.innerHTML = avaliacoes.map(function(a) {
     return '<tr><td>' + esc(a.servico || '-') + '</td><td>' + esc(a.prestador || '-') + '</td><td>' + starsHtml(a.nota) + ' ' + formatNota(a.nota) + '</td><td>' + (a.comentario ? esc(a.comentario) : '<span class="td-muted">Sem descricao</span>') + '</td><td><span class="badge badge-success">Enviada</span></td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function renderPrestadorAvaliacoes() {
@@ -845,6 +850,7 @@ function renderPrestadorAvaliacoes() {
   tb.innerHTML = avaliacoes.map(function(a) {
     return '<tr><td>' + esc(a.morador || '-') + '</td><td>' + esc(a.servico || a.prestadorServico || '-') + '</td><td>' + starsHtml(a.nota) + ' ' + formatNota(a.nota) + '</td><td>' + (a.comentario ? esc(a.comentario) : '<span class="td-muted">Sem descricao</span>') + '</td><td>' + esc(a.criadoEm || '-') + '</td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function selecionarProblema(texto) {
@@ -891,6 +897,7 @@ function renderMeusSuportes(perfil) {
   tb.innerHTML = chamados.map(function(c) {
     return '<tr><td>' + esc(c.tipo) + '<br><span class="td-muted">' + esc(c.descricao) + '</span></td><td>' + esc(c.urgencia) + '</td><td><span class="badge badge-warn">' + esc(suporteStatusLabel(c.status)) + '</span></td><td>' + (c.resposta ? esc(c.resposta) : '<span class="td-muted">Aguardando suporte</span>') + '</td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function renderAdminSuporte() {
@@ -904,6 +911,7 @@ function renderAdminSuporte() {
       tb.innerHTML = chamados.map(function(c) {
         return '<tr><td>#' + c.id + '</td><td>' + esc(c.perfil) + '</td><td><strong>' + esc(c.usuario) + '</strong><br><span class="td-muted">' + esc(c.email) + '</span></td><td>' + esc(c.tipo) + '<br><span class="td-muted">' + esc(c.descricao) + '</span></td><td>' + esc(c.urgencia) + '</td><td>' + badgeSuporte(c.status) + '</td><td><div class="td-actions support-actions"><button class="btn btn-warn" onclick="abrirAtendimentoSuporte(' + c.id + ')">Atender</button><button class="btn btn-primary" onclick="resolverSuporte(' + c.id + ')">Resolver</button><button class="btn btn-danger" onclick="excluirSuporte(' + c.id + ')">Excluir</button></div></td></tr>';
       }).join('');
+      applyResponsiveTableLabels();
     })
     .catch(function(error) { showToast(error.message, 'error'); });
 }
@@ -1116,6 +1124,21 @@ function configureDateLimits() {
   if (solData) solData.min = todayIso();
 }
 
+function applyResponsiveTableLabels() {
+  document.querySelectorAll('.table-card table').forEach(function(table) {
+    var labels = Array.prototype.map.call(table.querySelectorAll('thead th'), function(th) {
+      return th.textContent.trim();
+    });
+    table.querySelectorAll('tbody tr').forEach(function(row) {
+      Array.prototype.forEach.call(row.children, function(cell, index) {
+        if (!cell.hasAttribute('colspan')) {
+          cell.setAttribute('data-label', labels[index] || '');
+        }
+      });
+    });
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   protectHtmlPage();
   configureDateLimits();
@@ -1136,6 +1159,7 @@ document.addEventListener('DOMContentLoaded', function() {
   renderMeusSuportes('morador');
   renderMeusSuportes('prestador');
   renderAdminSuporte();
+  setTimeout(applyResponsiveTableLabels, 500);
 });
 
 // â”€â”€ NAVIGATION â”€â”€
@@ -1301,6 +1325,7 @@ function renderEquipe() {
       : '<span class="badge badge-error">â— Inativo</span>';
     return '<tr><td class="td-muted">#'+m.id+'</td><td><strong>'+esc(m.nome)+'</strong></td><td class="td-muted">'+esc(m.email)+'</td><td>'+esc(m.tel)+'</td><td><span class="badge badge-navy">'+esc(m.cargo)+'</span></td><td>'+esc(m.turno)+'</td><td>'+badge+'</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarEquipe('+m.id+')">Editar</button><button class="btn btn-danger" onclick="excluirEquipe('+m.id+')">Excluir</button></div></td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function editarEquipe(id) {
@@ -1375,6 +1400,7 @@ function renderPrestadores() {
   tb.innerHTML = prestadores.map(function(p){
     return '<tr><td class="td-muted">#'+p.id+'</td><td><strong>'+esc(p.nome)+'</strong></td><td><span class="badge badge-success">'+esc(p.servico)+'</span></td><td>'+esc(p.tel)+'</td><td class="td-muted">'+esc(p.email)+'</td><td>'+esc(p.nasc||'â€”')+'</td><td class="td-muted" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+esc(p.end)+'">'+esc(p.end)+'</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarPrest('+p.id+')">Editar</button><button class="btn btn-danger" onclick="excluirPrest('+p.id+')">Excluir</button></div></td></tr>';
   }).join('');
+  applyResponsiveTableLabels();
 }
 
 function editarPrest(id) {
