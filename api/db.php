@@ -14,10 +14,10 @@ function input_json() {
 }
 
 function db() {
-  $host = 'containers-us-west-xxx.railway.app';
+  $host = 'zephyr.proxy.rlwy.net';
   $dbname = 'railway';
   $user = 'root';
-  $pass = 'senha';
+  $pass = 'XXBQnngwH0HfgvHgBjEukDjRcfcLrzBi';
   $port = 3306;
   try {
         return new PDO(
