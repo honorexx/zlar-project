@@ -14,7 +14,11 @@ function input_json() {
 }
 
 function db() {
-  $url = getenv('DATABASE_URL') ?: getenv('MYSQL_URL');
+  $url = getenv('DATABASE_URL')
+    ?: getenv('MYSQL_URL')
+    ?: getenv('MYSQL_PUBLIC_URL')
+    ?: getenv('DATABASE_PUBLIC_URL');
+
   if ($url) {
     $parts = parse_url($url);
     $host = $parts['host'] ?? 'localhost';
@@ -23,11 +27,11 @@ function db() {
     $pass = $parts['pass'] ?? '';
     $port = $parts['port'] ?? '3306';
   } else {
-    $host = getenv('MYSQLHOST') ?: 'localhost';
-    $dbname = getenv('MYSQLDATABASE') ?: 'zlar';
-    $user = getenv('MYSQLUSER') ?: 'root';
-    $pass = getenv('MYSQLPASSWORD') ?: '';
-    $port = getenv('MYSQLPORT') ?: '3306';
+    $host = getenv('MYSQLHOST') ?: getenv('MYSQL_HOST') ?: 'localhost';
+    $dbname = getenv('MYSQLDATABASE') ?: getenv('MYSQL_DATABASE') ?: 'zlar';
+    $user = getenv('MYSQLUSER') ?: getenv('MYSQL_USER') ?: 'root';
+    $pass = getenv('MYSQLPASSWORD') ?: getenv('MYSQL_ROOT_PASSWORD') ?: getenv('MYSQL_PASSWORD') ?: '';
+    $port = getenv('MYSQLPORT') ?: getenv('MYSQL_PORT') ?: '3306';
   }
 
   try {
@@ -41,7 +45,13 @@ function db() {
     json_response([
       'ok' => false,
       'message' => 'Banco de dados indisponivel. Configure api/db.php com seus dados do MySQL.',
-      'debug' => $e->getMessage()
+      'debug' => $e->getMessage(),
+      'connection' => [
+        'host' => $host,
+        'port' => $port,
+        'database' => $dbname,
+        'user' => $user
+      ]
     ], 500);
   }
 }
