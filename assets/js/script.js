@@ -216,13 +216,51 @@ function loginHtml(event, tipo) {
 function esqueciSenhaHtml(event, tipo) {
   event.preventDefault();
   var email = document.getElementById('rec-email').value.trim();
-  apiPost('esqueci_senha.php', { email: email, tipo: tipo })
+  apiPost('esqueci_senha.php', { action: 'gerar', email: email, tipo: tipo })
     .then(function(data) {
-      showToast('Codigo gerado: ' + data.codigo, 'success');
+      var codigoBox = document.getElementById('rec-codigo-gerado');
+      var resetForm = document.getElementById('reset-password-form');
+      if (codigoBox) {
+        codigoBox.textContent = 'Codigo gerado para apresentacao: ' + data.codigo;
+        codigoBox.style.display = 'block';
+      }
+      if (resetForm) resetForm.style.display = 'grid';
+      showToast(data.message || 'Codigo gerado.', 'success');
     })
     .catch(function(error) {
       showToast(error.message, 'error');
     });
+}
+
+function redefinirSenhaHtml(event, tipo) {
+  event.preventDefault();
+  var email = document.getElementById('rec-email').value.trim();
+  var codigo = document.getElementById('rec-codigo').value.trim();
+  var senha = document.getElementById('rec-nova-senha').value.trim();
+  var confirmarSenha = document.getElementById('rec-confirmar-senha').value.trim();
+
+  if (!validPassword(senha)) {
+    showToast('A senha deve ter 8 caracteres, uma letra maiuscula e um numero.', 'error');
+    return;
+  }
+  if (senha !== confirmarSenha) {
+    showToast('A confirmacao de senha nao confere.', 'error');
+    return;
+  }
+
+  apiPost('esqueci_senha.php', {
+    action: 'redefinir',
+    email: email,
+    tipo: tipo,
+    codigo: codigo,
+    senha: senha,
+    confirmar_senha: confirmarSenha
+  }).then(function(data) {
+    showToast(data.message || 'Senha redefinida.', 'success');
+    setTimeout(function() { window.location.href = 'login.html'; }, 1200);
+  }).catch(function(error) {
+    showToast(error.message, 'error');
+  });
 }
 
 function cadastrarMoradorHtml(event) {
@@ -361,21 +399,115 @@ function salvarPerfilPrestador() {
 function renderAdminMoradores() {
   var tb = document.getElementById('tbMoradores');
   if (!tb) return;
-  var moradores = getList('zlar_moradores');
-  if (!moradores.length) return;
-  tb.innerHTML = moradores.map(function(m) {
-    return '<tr><td>' + esc(m.nome) + '</td><td>' + esc(m.email) + '</td><td>' + esc(m.telefone) + '</td><td><span class="badge badge-success">Ativo</span></td></tr>';
-  }).join('');
+  apiPost('admin_usuarios.php', { action: 'listar', tipo: 'morador' })
+    .then(function(data) {
+      var moradores = data.usuarios || [];
+      saveLocal('zlar_admin_moradores', moradores);
+      if (!moradores.length) return;
+      tb.innerHTML = moradores.map(function(m) {
+        return '<tr><td><strong>' + esc(m.nome) + '</strong></td><td>' + esc(m.email) + '</td><td>' + esc(m.telefone || '-') + '</td><td>' + esc(m.cpf || '-') + '</td><td>' + badgeUsuario(m.status) + '</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarAdminUsuario(\'morador\',' + m.id + ')">Editar</button><button class="btn btn-danger" onclick="excluirAdminUsuario(\'morador\',' + m.id + ')">Excluir</button></div></td></tr>';
+      }).join('');
+    })
+    .catch(function(error) { showToast(error.message, 'error'); });
 }
 
 function renderAdminPrestadores() {
   var tb = document.getElementById('tbPrestadoresAdmin');
   if (!tb) return;
-  var prestadoresLocal = getList('zlar_prestadores');
-  if (!prestadoresLocal.length) return;
-  tb.innerHTML = prestadoresLocal.map(function(p) {
-    return '<tr><td>' + esc(p.nome) + '</td><td>' + esc(p.servico) + '</td><td>' + esc(p.telefone) + '</td><td><span class="badge badge-warn">Em analise</span></td></tr>';
-  }).join('');
+  apiPost('admin_usuarios.php', { action: 'listar', tipo: 'prestador' })
+    .then(function(data) {
+      var prestadoresLocal = data.usuarios || [];
+      saveLocal('zlar_admin_prestadores', prestadoresLocal);
+      if (!prestadoresLocal.length) return;
+      tb.innerHTML = prestadoresLocal.map(function(p) {
+        return '<tr><td><strong>' + esc(p.nome) + '</strong><br><span class="td-muted">' + esc(p.email) + '</span></td><td>' + esc(p.servico || '-') + '</td><td>' + esc(p.telefone || '-') + '</td><td>' + badgeUsuario(p.status) + '</td><td>' + badgeAprovacao(p.status_aprovacao) + '</td><td><div class="td-actions"><button class="btn btn-warn" onclick="editarAdminUsuario(\'prestador\',' + p.id + ')">Editar</button><button class="btn btn-danger" onclick="excluirAdminUsuario(\'prestador\',' + p.id + ')">Excluir</button></div></td></tr>';
+      }).join('');
+    })
+    .catch(function(error) { showToast(error.message, 'error'); });
+}
+
+function badgeUsuario(status) {
+  var cls = status === 'ativo' ? 'badge-success' : (status === 'bloqueado' ? 'badge-error' : 'badge-warn');
+  return '<span class="badge ' + cls + '">' + esc(status || 'ativo') + '</span>';
+}
+
+function badgeAprovacao(status) {
+  var labels = { em_analise: 'Em analise', aprovado: 'Aprovado', reprovado: 'Reprovado', bloqueado: 'Bloqueado' };
+  var cls = status === 'aprovado' ? 'badge-success' : (status === 'reprovado' || status === 'bloqueado' ? 'badge-error' : 'badge-warn');
+  return '<span class="badge ' + cls + '">' + esc(labels[status] || status || 'Em analise') + '</span>';
+}
+
+function setSelectValue(id, value) {
+  var el = document.getElementById(id);
+  if (el) el.value = value || el.value;
+}
+
+function editarAdminUsuario(tipo, id) {
+  var list = getList(tipo === 'morador' ? 'zlar_admin_moradores' : 'zlar_admin_prestadores');
+  var user = list.find(function(item) { return String(item.id) === String(id); });
+  if (!user) return;
+  fillValue('admin-user-id', user.id);
+  fillValue('admin-user-nome', user.nome);
+  fillValue('admin-user-email', user.email);
+  fillValue('admin-user-telefone', user.telefone);
+  setSelectValue('admin-user-status', user.status || 'ativo');
+  if (tipo === 'morador') {
+    fillValue('admin-user-cpf', user.cpf);
+    fillValue('admin-user-endereco', user.endereco);
+  } else {
+    setSelectValue('admin-user-servico', user.servico || 'Limpeza pesada');
+    setSelectValue('admin-user-status-aprovacao', user.status_aprovacao || 'em_analise');
+    fillValue('admin-user-descricao', user.descricao);
+  }
+  var panel = document.getElementById('admin-user-panel');
+  if (panel) {
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function cancelarAdminUsuario() {
+  var panel = document.getElementById('admin-user-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function salvarAdminUsuario(event) {
+  event.preventDefault();
+  var tipo = document.getElementById('admin-user-tipo').value;
+  var payload = {
+    action: 'atualizar',
+    tipo: tipo,
+    id: document.getElementById('admin-user-id').value,
+    nome: document.getElementById('admin-user-nome').value.trim(),
+    email: document.getElementById('admin-user-email').value.trim(),
+    telefone: document.getElementById('admin-user-telefone').value.trim(),
+    status: document.getElementById('admin-user-status').value
+  };
+  if (tipo === 'morador') {
+    payload.cpf = document.getElementById('admin-user-cpf').value.trim();
+    payload.endereco = document.getElementById('admin-user-endereco').value.trim();
+  } else {
+    payload.servico = document.getElementById('admin-user-servico').value;
+    payload.status_aprovacao = document.getElementById('admin-user-status-aprovacao').value;
+    payload.descricao = document.getElementById('admin-user-descricao').value.trim();
+  }
+  apiPost('admin_usuarios.php', payload).then(function(data) {
+    showToast(data.message || 'Usuario atualizado.', 'success');
+    cancelarAdminUsuario();
+    if (tipo === 'morador') renderAdminMoradores();
+    else renderAdminPrestadores();
+  }).catch(function(error) { showToast(error.message, 'error'); });
+}
+
+function excluirAdminUsuario(tipo, id) {
+  if (!confirm('Excluir este usuario? Esta acao tambem remove o perfil vinculado.')) return;
+  apiPost('admin_usuarios.php', { action: 'excluir', tipo: tipo, id: id })
+    .then(function(data) {
+      showToast(data.message || 'Usuario excluido.', 'success');
+      if (tipo === 'morador') renderAdminMoradores();
+      else renderAdminPrestadores();
+    })
+    .catch(function(error) { showToast(error.message, 'error'); });
 }
 
 function renderChamadosPrestador() {
@@ -764,48 +896,102 @@ function renderMeusSuportes(perfil) {
 function renderAdminSuporte() {
   var tb = document.getElementById('tbAdminSuporte');
   if (!tb) return;
-  var chamados = getList('zlar_suporte');
-  if (!chamados.length) return;
-  tb.innerHTML = chamados.map(function(c) {
-    return '<tr><td>#' + c.id + '</td><td>' + esc(c.perfil) + '</td><td><strong>' + esc(c.usuario) + '</strong><br><span class="td-muted">' + esc(c.email) + '</span></td><td>' + esc(c.tipo) + '<br><span class="td-muted">' + esc(c.descricao) + '</span></td><td>' + esc(c.urgencia) + '</td><td><span class="badge badge-warn">' + esc(suporteStatusLabel(c.status)) + '</span></td><td><div class="td-actions support-actions"><button class="btn btn-warn" onclick="editarStatusSuporte(' + c.id + ')">Editar</button><button class="btn btn-secondary" onclick="responderSuporte(' + c.id + ')">Responder</button><button class="btn btn-primary" onclick="resolverSuporte(' + c.id + ')">Resolver</button><button class="btn btn-danger" onclick="excluirSuporte(' + c.id + ')">Excluir</button></div></td></tr>';
-  }).join('');
+  apiPost('chamados_suporte.php', { action: 'listar' })
+    .then(function(data) {
+      var chamados = (data.chamados || []).map(normalizeSuporte);
+      saveLocal('zlar_suporte_admin', chamados);
+      if (!chamados.length) return;
+      tb.innerHTML = chamados.map(function(c) {
+        return '<tr><td>#' + c.id + '</td><td>' + esc(c.perfil) + '</td><td><strong>' + esc(c.usuario) + '</strong><br><span class="td-muted">' + esc(c.email) + '</span></td><td>' + esc(c.tipo) + '<br><span class="td-muted">' + esc(c.descricao) + '</span></td><td>' + esc(c.urgencia) + '</td><td>' + badgeSuporte(c.status) + '</td><td><div class="td-actions support-actions"><button class="btn btn-warn" onclick="abrirAtendimentoSuporte(' + c.id + ')">Atender</button><button class="btn btn-primary" onclick="resolverSuporte(' + c.id + ')">Resolver</button><button class="btn btn-danger" onclick="excluirSuporte(' + c.id + ')">Excluir</button></div></td></tr>';
+      }).join('');
+    })
+    .catch(function(error) { showToast(error.message, 'error'); });
 }
 
-function updateSuporte(id, changes) {
-  var chamados = getList('zlar_suporte').map(function(c) {
-    if (String(c.id) !== String(id)) return c;
-    Object.keys(changes).forEach(function(key) { c[key] = changes[key]; });
-    return c;
-  });
-  saveLocal('zlar_suporte', chamados);
+function normalizeSuporte(c) {
+  return {
+    id: c.id,
+    perfil: c.perfil,
+    usuario: c.usuario_nome || c.usuario || 'Usuario',
+    email: c.usuario_email || c.email || '',
+    tipo: c.tipo || '',
+    urgencia: c.urgencia || 'Media',
+    descricao: c.descricao || '',
+    status: c.status || 'aberto',
+    resposta: c.resposta || '',
+    criadoEm: c.criado_em || c.criadoEm || ''
+  };
 }
 
-function editarStatusSuporte(id) {
-  var status = prompt('Novo status: aberto, em_atendimento, resolvido ou cancelado');
-  if (!status) return;
-  updateSuporte(id, { status: status });
-  renderAdminSuporte();
+function badgeSuporte(status) {
+  var cls = status === 'resolvido' ? 'badge-success' : (status === 'cancelado' ? 'badge-error' : 'badge-warn');
+  return '<span class="badge ' + cls + '">' + esc(suporteStatusLabel(status)) + '</span>';
 }
 
-function responderSuporte(id) {
-  var resposta = prompt('Digite a resposta para o usuario');
-  if (!resposta) return;
-  updateSuporte(id, { resposta: resposta, status: 'em_atendimento' });
-  renderAdminSuporte();
+function abrirAtendimentoSuporte(id) {
+  var chamados = getList('zlar_suporte_admin');
+  var chamado = chamados.find(function(c) { return String(c.id) === String(id); });
+  if (!chamado) return;
+  fillValue('support-edit-id', chamado.id);
+  setSelectValue('support-edit-status', chamado.status);
+  setSelectValue('support-edit-urgencia', chamado.urgencia);
+  fillValue('support-edit-tipo', chamado.tipo);
+  fillValue('support-edit-descricao', chamado.descricao);
+  fillValue('support-edit-resposta', chamado.resposta);
+  var panel = document.getElementById('support-edit-panel');
+  if (panel) {
+    panel.style.display = 'block';
+    panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function fecharAtendimentoSuporte() {
+  var panel = document.getElementById('support-edit-panel');
+  if (panel) panel.style.display = 'none';
+}
+
+function salvarAtendimentoSuporte(event) {
+  event.preventDefault();
+  apiPost('chamados_suporte.php', {
+    action: 'atualizar',
+    id: document.getElementById('support-edit-id').value,
+    status: document.getElementById('support-edit-status').value,
+    urgencia: document.getElementById('support-edit-urgencia').value,
+    tipo: document.getElementById('support-edit-tipo').value.trim(),
+    descricao: document.getElementById('support-edit-descricao').value.trim(),
+    resposta: document.getElementById('support-edit-resposta').value.trim()
+  }).then(function() {
+    fecharAtendimentoSuporte();
+    renderAdminSuporte();
+    showToast('Chamado atualizado.', 'success');
+  }).catch(function(error) { showToast(error.message, 'error'); });
 }
 
 function resolverSuporte(id) {
-  updateSuporte(id, { status: 'resolvido' });
-  renderAdminSuporte();
-  showToast('Chamado marcado como resolvido.', 'success');
+  var chamados = getList('zlar_suporte_admin');
+  var chamado = chamados.find(function(c) { return String(c.id) === String(id); }) || {};
+  apiPost('chamados_suporte.php', {
+    action: 'atualizar',
+    id: id,
+    status: 'resolvido',
+    urgencia: chamado.urgencia || 'Media',
+    tipo: chamado.tipo || '',
+    descricao: chamado.descricao || '',
+    resposta: chamado.resposta || 'Chamado resolvido pela equipe Zlar.'
+  }).then(function() {
+    renderAdminSuporte();
+    showToast('Chamado marcado como resolvido.', 'success');
+  }).catch(function(error) { showToast(error.message, 'error'); });
 }
 
 function excluirSuporte(id) {
   if (!confirm('Excluir este chamado de suporte?')) return;
-  var chamados = getList('zlar_suporte').filter(function(c) { return String(c.id) !== String(id); });
-  saveLocal('zlar_suporte', chamados);
-  renderAdminSuporte();
-  showToast('Chamado excluido.', 'error');
+  apiPost('chamados_suporte.php', { action: 'excluir', id: id })
+    .then(function() {
+      renderAdminSuporte();
+      showToast('Chamado excluido.', 'error');
+    })
+    .catch(function(error) { showToast(error.message, 'error'); });
 }
 
 function renderAdminDashboard() {

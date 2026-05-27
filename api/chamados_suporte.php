@@ -22,8 +22,15 @@ if ($action === 'criar') {
 
 if ($action === 'atualizar') {
   require_auth('admin');
-  $stmt = $pdo->prepare('UPDATE chamados_suporte SET status = ?, resposta = ?, atualizado_em = NOW() WHERE id = ?');
-  $stmt->execute([$data['status'] ?? 'em_atendimento', $data['resposta'] ?? '', $data['id'] ?? 0]);
+  $stmt = $pdo->prepare('UPDATE chamados_suporte SET tipo = ?, urgencia = ?, descricao = ?, status = ?, resposta = ?, atualizado_em = NOW() WHERE id = ?');
+  $stmt->execute([
+    $data['tipo'] ?? '',
+    $data['urgencia'] ?? 'Media',
+    $data['descricao'] ?? '',
+    $data['status'] ?? 'em_atendimento',
+    $data['resposta'] ?? '',
+    $data['id'] ?? 0
+  ]);
   json_response(['ok' => true]);
 }
 

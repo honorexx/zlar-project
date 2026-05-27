@@ -155,6 +155,12 @@ tbody td{padding:13px 16px;color:var(--text);vertical-align:middle;}
 .alert.show{display:flex;align-items:center;gap:8px;}
 .alert-success{background:var(--teal-light);color:var(--teal-dark);border:1px solid var(--teal-mid);}
 .alert-error{background:#fef2f0;color:var(--error);border:1px solid #fccfc5;}
+.recovery-code{
+  display:none;margin:1rem 0;padding:.85rem 1rem;
+  border:1px solid var(--teal-mid);border-radius:var(--radius-sm);
+  background:var(--teal-light);color:var(--teal-dark);
+  font-size:13px;font-weight:700;
+}
 
 /* â”€â”€ CATEGORIA CARDS â”€â”€ */
 .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:.75rem;margin-bottom:.5rem;}

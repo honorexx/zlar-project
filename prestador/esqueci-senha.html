@@ -19,6 +19,13 @@
         <div class="field"><label>E-mail</label><input id="rec-email" type="email" required></div>
         <div class="actions-row"><a class="btn btn-ghost" href="login.html">Voltar</a><button class="btn btn-primary" type="submit">Gerar codigo</button></div>
       </form>
+      <div class="recovery-code" id="rec-codigo-gerado"></div>
+      <form class="form-grid cols-1" id="reset-password-form" style="display:none" onsubmit="redefinirSenhaHtml(event, 'prestador')">
+        <div class="field"><label>Codigo recebido</label><input id="rec-codigo" type="text" required maxlength="6" placeholder="000000"></div>
+        <div class="field"><label>Nova senha</label><input id="rec-nova-senha" type="password" required minlength="8" pattern="(?=.*[A-Z])(?=.*\d).{8,}" placeholder="Minimo 8, maiuscula e numero"></div>
+        <div class="field"><label>Confirmar nova senha</label><input id="rec-confirmar-senha" type="password" required minlength="8" placeholder="Repita a nova senha"></div>
+        <div class="actions-row actions-row-end"><button class="btn btn-primary" type="submit">Trocar senha</button></div>
+      </form>
     </section>
   </main>
   <div class="toast" id="toast"></div><script src="../assets/js/script.js"></script>

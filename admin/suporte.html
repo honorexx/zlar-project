@@ -11,7 +11,19 @@
 <body>
   <header class="zlar-header"><a class="zlar-logo" href="painel.html"><span class="brand-lockup"><img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar"><span class="brand-text"><span>ZLAR</span><small>Admin</small></span></span></a><nav class="header-nav"><a href="painel.html">Painel</a><a href="moradores.html">Moradores</a><a href="prestadores.html">Prestadores</a><a href="equipe.html">Equipe</a><a class="active" href="suporte.html">Suporte</a></nav></header>
   <main class="page-wrap">
-    <div class="page-title-block"><div class="page-tag">Admin</div><h1 class="page-title">Chamados de suporte</h1><p class="page-subtitle">Edite, responda, resolva ou exclua solicitações abertas por moradores e prestadores.</p></div>
+    <div class="page-title-block"><div class="page-tag">Admin</div><h1 class="page-title">Chamados de suporte</h1><p class="page-subtitle">Edite, responda, resolva ou exclua solicitacoes abertas por moradores e prestadores.</p></div>
+    <section class="card admin-edit-panel" id="support-edit-panel" style="display:none">
+      <div class="section-label">Atender chamado</div>
+      <form class="form-grid" onsubmit="salvarAtendimentoSuporte(event)">
+        <input type="hidden" id="support-edit-id">
+        <div class="field"><label>Status</label><select id="support-edit-status"><option value="aberto">Aberto</option><option value="em_atendimento">Em atendimento</option><option value="resolvido">Resolvido</option><option value="cancelado">Cancelado</option></select></div>
+        <div class="field"><label>Urgencia</label><select id="support-edit-urgencia"><option>Baixa</option><option>Media</option><option>Alta</option></select></div>
+        <div class="field col-span-2"><label>Tipo do problema</label><input id="support-edit-tipo" type="text" required></div>
+        <div class="field col-span-2"><label>Descricao</label><textarea id="support-edit-descricao" required></textarea></div>
+        <div class="field col-span-2"><label>Resposta ao usuario</label><textarea id="support-edit-resposta" placeholder="Digite a orientacao ou retorno para o usuario"></textarea></div>
+        <div class="actions-row col-span-2 actions-row-end"><button class="btn btn-ghost" type="button" onclick="fecharAtendimentoSuporte()">Cancelar</button><button class="btn btn-primary" type="submit">Salvar atendimento</button></div>
+      </form>
+    </section>
     <section class="card table-card"><table><thead><tr><th>ID</th><th>Perfil</th><th>Usuario</th><th>Problema</th><th>Urgencia</th><th>Status</th><th>Acoes</th></tr></thead><tbody id="tbAdminSuporte"><tr><td colspan="7"><div class="empty-state"><h3>Nenhum chamado de suporte</h3><p>Chamados abertos aparecem aqui.</p></div></td></tr></tbody></table></section>
   </main>
   <div class="toast" id="toast"></div><script src="../assets/js/script.js?v=20260518"></script>
