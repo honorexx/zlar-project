@@ -1,4 +1,4 @@
-# Zlar
+# Zlar - software
 
 Plataforma web para conectar moradores, prestadores de servico e administradores. O sistema permite cadastro, login, solicitacao de servicos, acompanhamento de chamados, suporte, avaliacoes e gerenciamento administrativo.
 
