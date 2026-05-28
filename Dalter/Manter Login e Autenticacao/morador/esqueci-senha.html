@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Esqueci a senha | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+<body>
+  <header class="zlar-header"><a class="zlar-logo" href="login.html"><span class="brand-lockup"><img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar"><span class="brand-text"><span>ZLAR</span><small>Morador</small></span></span></a><nav class="header-nav"><a href="login.html">Login</a><a href="cadastro.html">Cadastro</a></nav></header>
+  <main class="page-wrap auth-wrap">
+    <section class="card auth-card">
+      <div class="page-tag">Recuperacao</div>
+      <h1 class="page-title">Esqueci minha senha</h1>
+      <p class="page-subtitle">Informe seu e-mail para gerar um codigo de recuperacao.</p>
+      <form class="form-grid cols-1" onsubmit="esqueciSenhaHtml(event, 'morador')">
+        <div class="field"><label>E-mail</label><input id="rec-email" type="email" required></div>
+        <div class="actions-row"><a class="btn btn-ghost" href="login.html">Voltar</a><button class="btn btn-primary" type="submit">Gerar codigo</button></div>
+      </form>
+      <div class="recovery-code" id="rec-codigo-gerado"></div>
+      <form class="form-grid cols-1" id="reset-password-form" style="display:none" onsubmit="redefinirSenhaHtml(event, 'morador')">
+        <div class="field"><label>Codigo recebido</label><input id="rec-codigo" type="text" required maxlength="6" placeholder="000000"></div>
+        <div class="field"><label>Nova senha</label><input id="rec-nova-senha" type="password" required minlength="8" pattern="(?=.*[A-Z])(?=.*\d).{8,}" placeholder="Minimo 8, maiuscula e numero"></div>
+        <div class="field"><label>Confirmar nova senha</label><input id="rec-confirmar-senha" type="password" required minlength="8" placeholder="Repita a nova senha"></div>
+        <div class="actions-row actions-row-end"><button class="btn btn-primary" type="submit">Trocar senha</button></div>
+      </form>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div><script src="../assets/js/script.js"></script>
+</body>
+</html>
+
+
+
