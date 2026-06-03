@@ -39,13 +39,29 @@ try {
   $stmt->execute([$nome, $email, $telefone, password_hash($senha, PASSWORD_DEFAULT)]);
   $usuarioId = $pdo->lastInsertId();
 
+  $moradorData = [
+    'usuario_id' => $usuarioId,
+    'cpf' => $cpf,
+    'endereco' => $endereco,
+  ];
   if (table_has_column($pdo, 'moradores', 'nascimento')) {
-    $stmt = $pdo->prepare('INSERT INTO moradores (usuario_id, cpf, endereco, nascimento) VALUES (?, ?, ?, ?)');
-    $stmt->execute([$usuarioId, $cpf, $endereco, $nascimento]);
-  } else {
-    $stmt = $pdo->prepare('INSERT INTO moradores (usuario_id, cpf, endereco) VALUES (?, ?, ?)');
-    $stmt->execute([$usuarioId, $cpf, $endereco]);
+    $moradorData['nascimento'] = $nascimento;
   }
+
+  $camposIgnorados = ['nome', 'email', 'telefone', 'senha', 'confirmar_senha'];
+  foreach ($data as $campo => $valor) {
+    if (in_array($campo, $camposIgnorados, true) || array_key_exists($campo, $moradorData)) continue;
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $campo)) continue;
+    if (table_has_column($pdo, 'moradores', $campo)) {
+      $moradorData[$campo] = $valor === '' ? null : $valor;
+    }
+  }
+
+  $colunas = array_keys($moradorData);
+  $colunasSql = '`' . implode('`, `', $colunas) . '`';
+  $placeholders = implode(', ', array_fill(0, count($colunas), '?'));
+  $stmt = $pdo->prepare("INSERT INTO moradores ($colunasSql) VALUES ($placeholders)");
+  $stmt->execute(array_values($moradorData));
 
   $pdo->commit();
   $user = [
@@ -54,10 +70,10 @@ try {
     'nome' => $nome,
     'email' => $email,
     'telefone' => $telefone,
-    'cpf' => $cpf,
-    'endereco' => $endereco,
-    'nascimento' => $nascimento
   ];
+  foreach ($moradorData as $campo => $valor) {
+    if ($campo !== 'usuario_id') $user[$campo] = $valor;
+  }
   $_SESSION['zlar_user'] = $user;
   json_response([
     'ok' => true,

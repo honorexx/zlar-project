@@ -37,13 +37,30 @@ try {
   $stmt->execute([$nome, $email, $telefone, password_hash($senha, PASSWORD_DEFAULT)]);
   $usuarioId = $pdo->lastInsertId();
 
+  $prestadorData = [
+    'usuario_id' => $usuarioId,
+    'servico' => $servico,
+    'descricao' => $descricao,
+    'status_aprovacao' => 'em_analise',
+  ];
   if (table_has_column($pdo, 'prestadores', 'nascimento')) {
-    $stmt = $pdo->prepare('INSERT INTO prestadores (usuario_id, servico, descricao, nascimento, status_aprovacao) VALUES (?, ?, ?, ?, "em_analise")');
-    $stmt->execute([$usuarioId, $servico, $descricao, $nascimento]);
-  } else {
-    $stmt = $pdo->prepare('INSERT INTO prestadores (usuario_id, servico, descricao, status_aprovacao) VALUES (?, ?, ?, "em_analise")');
-    $stmt->execute([$usuarioId, $servico, $descricao]);
+    $prestadorData['nascimento'] = $nascimento;
   }
+
+  $camposIgnorados = ['nome', 'email', 'telefone', 'senha', 'confirmar_senha'];
+  foreach ($data as $campo => $valor) {
+    if (in_array($campo, $camposIgnorados, true) || array_key_exists($campo, $prestadorData)) continue;
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $campo)) continue;
+    if (table_has_column($pdo, 'prestadores', $campo)) {
+      $prestadorData[$campo] = $valor === '' ? null : $valor;
+    }
+  }
+
+  $colunas = array_keys($prestadorData);
+  $colunasSql = '`' . implode('`, `', $colunas) . '`';
+  $placeholders = implode(', ', array_fill(0, count($colunas), '?'));
+  $stmt = $pdo->prepare("INSERT INTO prestadores ($colunasSql) VALUES ($placeholders)");
+  $stmt->execute(array_values($prestadorData));
 
   $pdo->commit();
   $user = [
@@ -52,10 +69,10 @@ try {
     'nome' => $nome,
     'email' => $email,
     'telefone' => $telefone,
-    'servico' => $servico,
-    'descricao' => $descricao,
-    'nascimento' => $nascimento
   ];
+  foreach ($prestadorData as $campo => $valor) {
+    if ($campo !== 'usuario_id') $user[$campo] = $valor;
+  }
   $_SESSION['zlar_user'] = $user;
   json_response([
     'ok' => true,

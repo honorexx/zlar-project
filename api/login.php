@@ -30,7 +30,7 @@ if ($tipo === 'admin') {
   json_response(['ok' => true, 'user' => $user]);
 }
 
-$stmt = $pdo->prepare('SELECT id, nome, email, tipo, senha_hash FROM usuarios WHERE email = ? AND tipo = ? LIMIT 1');
+$stmt = $pdo->prepare('SELECT id, nome, email, telefone, tipo, senha_hash FROM usuarios WHERE email = ? AND tipo = ? LIMIT 1');
 $stmt->execute([$email, $tipo]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -40,16 +40,22 @@ if (!$user || !password_verify($senha, $user['senha_hash'])) {
 
 unset($user['senha_hash']);
 if ($tipo === 'prestador') {
-  $stmt = $pdo->prepare('SELECT servico, descricao FROM prestadores WHERE usuario_id = ? LIMIT 1');
+  $stmt = $pdo->prepare('SELECT * FROM prestadores WHERE usuario_id = ? LIMIT 1');
   $stmt->execute([$user['id']]);
   $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($perfil) $user = array_merge($user, $perfil);
+  if ($perfil) {
+    unset($perfil['id'], $perfil['usuario_id']);
+    $user = array_merge($user, $perfil);
+  }
 }
 if ($tipo === 'morador') {
-  $stmt = $pdo->prepare('SELECT cpf, endereco FROM moradores WHERE usuario_id = ? LIMIT 1');
+  $stmt = $pdo->prepare('SELECT * FROM moradores WHERE usuario_id = ? LIMIT 1');
   $stmt->execute([$user['id']]);
   $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($perfil) $user = array_merge($user, $perfil);
+  if ($perfil) {
+    unset($perfil['id'], $perfil['usuario_id']);
+    $user = array_merge($user, $perfil);
+  }
 }
 $_SESSION['zlar_user'] = $user;
 json_response(['ok' => true, 'user' => $user]);

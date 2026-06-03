@@ -4,6 +4,21 @@ var prestadores = [];
 var editTarget = null;
 var editType = null;
 var SERVICOS_ZLAR = ['Limpeza pesada', 'Limpeza diaria', 'Baba', 'Cuidador de idosos'];
+function redirectLiveServerToXampp() {
+  var loc = window.location;
+  var isFile = loc.protocol === 'file:';
+  var isLocalhostLiveServer = loc.protocol === 'http:' && loc.hostname === 'localhost' && !!loc.port && loc.port !== '80';
+  var isLoopback = loc.protocol === 'http:' && loc.hostname === '127.0.0.1';
+
+  if (!isFile && !isLocalhostLiveServer && !isLoopback) return;
+
+  var path = loc.pathname || '';
+  var projectIndex = path.toLowerCase().indexOf('/zlar_oficial/');
+  var targetPath = projectIndex !== -1 ? path.slice(projectIndex) : '/zlar_oficial' + (path.charAt(0) === '/' ? path : '/' + path);
+  window.location.replace('http://localhost' + targetPath + loc.search + loc.hash);
+}
+
+redirectLiveServerToXampp();
 
 function saveLocal(key, data) {
   localStorage.setItem(key, JSON.stringify(data));
