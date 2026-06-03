@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suporte do prestador | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css?v=20260518">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+
+<body>
+  <header class="zlar-header">
+    <a class="zlar-logo" href="painel.html">
+      <span class="brand-lockup">
+        <img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar">
+        <span class="brand-text">
+          <span>ZLAR</span>
+          <small>Prestador</small>
+        </span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="painel.html">Painel</a>
+      <a href="chamados.html">Chamados</a>
+      <a href="perfil.html">Perfil</a>
+      <a class="active" href="suporte.html">Suporte</a>
+    </nav>
+  </header>
+  <main class="page-wrap">
+    <div class="page-title-block">
+      <div class="page-tag">Suporte</div>
+      <h1 class="page-title">Ajuda com um problema</h1>
+      <p class="page-subtitle">Abra um chamado para a equipe administrativa.</p>
+    </div>
+    <section class="card">
+      <div class="section-label">Problemas comuns</div>
+      <div class="support-grid">
+        <button class="support-option" onclick="selecionarProblema('Problema para receber pagamento')">Problema para receber pagamento</button>
+        <button class="support-option" onclick="selecionarProblema('Morador não finalizou o serviço')">Morador não finalizou o serviço</button>
+        <button class="support-option" onclick="selecionarProblema('Não consigo aceitar chamado')">Não consigo aceitar chamado</button>
+        <button class="support-option" onclick="selecionarProblema('Problema com meu perfil')">Problema com meu perfil</button>
+        <button class="support-option" onclick="selecionarProblema('Solicitação incorreta')">Solicitação incorreta</button>
+        <button class="support-option" onclick="selecionarProblema('Outro problema')">Outro problema</button>
+      </div>
+    </section>
+    <section class="card">
+      <form class="form-grid" onsubmit="abrirChamadoSuporte(event, 'prestador')">
+        <div class="field">
+          <label>Tipo do problema</label>
+          <input id="suporte-tipo" type="text" required>
+        </div>
+        <div class="field">
+          <label>Urgência</label>
+          <select id="suporte-urgencia">
+            <option>Baixa</option>
+            <option>Média</option>
+            <option>Alta</option>
+          </select>
+        </div>
+        <div class="field col-span-2">
+          <label>Descreva o problema</label>
+          <textarea id="suporte-descricao" required></textarea>
+        </div>
+        <div class="actions-row col-span-2 actions-row-end">
+          <button class="btn btn-primary" type="submit">Abrir chamado</button>
+        </div>
+      </form>
+    </section>
+    <section class="card table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Problema</th>
+            <th>Urgência</th>
+            <th>Status</th>
+            <th>Resposta</th>
+          </tr>
+        </thead>
+        <tbody id="tbMeusSuportes">
+          <tr>
+            <td colspan="4">
+              <div class="empty-state">
+                <h3>Nenhum chamado de suporte</h3>
+                <p>Seus chamados aparecem aqui.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="../assets/js/script.js?v=20260518"></script>
+</body>
+</html>

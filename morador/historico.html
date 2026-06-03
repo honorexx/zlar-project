@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+
+<body>
+  <header class="zlar-header">
+    <a class="zlar-logo" href="painel.html">
+      <span class="brand-lockup">
+        <img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar">
+        <span class="brand-text">
+          <span>ZLAR</span>
+          <small>Morador</small>
+        </span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="painel.html">Painel</a>
+      <a href="solicitar.html">Solicitar</a>
+      <a class="active" href="historico.html">Histórico</a>
+      <a href="avaliacoes.html">Avaliações</a>
+    </nav>
+  </header>
+  <main class="page-wrap">
+    <div class="page-title-block">
+      <div class="page-tag">Morador</div>
+      <h1 class="page-title">Histórico</h1>
+      <p class="page-subtitle">Veja quem aceitou o serviço, finalize quando terminar e pague quando o prestador solicitar.</p>
+    </div>
+    <section class="card table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Serviço</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Prestador</th>
+            <th>Informações do prestador</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="historicoMorador">
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <h3>Nenhuma solicitação encontrada</h3>
+                <p>Quando você solicitar um serviço, ele aparece aqui.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <script src="../assets/js/script.js"></script>
+</body>
+</html>

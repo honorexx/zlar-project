@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avaliações | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+
+<body>
+  <header class="zlar-header">
+    <a class="zlar-logo" href="painel.html">
+      <span class="brand-lockup">
+        <img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar">
+        <span class="brand-text">
+          <span>ZLAR</span>
+          <small>Prestador</small>
+        </span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="painel.html">Painel</a>
+      <a href="chamados.html">Chamados</a>
+      <a class="active" href="avaliacoes.html">Avaliações</a>
+      <a href="perfil.html">Perfil</a>
+    </nav>
+  </header>
+  <main class="page-wrap">
+    <div class="page-title-block">
+      <div class="page-tag">Prestador</div>
+      <h1 class="page-title">Avaliações recebidas</h1>
+      <p class="page-subtitle">Feedbacks enviados pelos moradores depois do pagamento.</p>
+    </div>
+    <section class="rating-summary">
+      <div class="metric-card">
+        <span>Nota média</span>
+        <strong id="prestador-nota-media">-</strong>
+      </div>
+      <div class="metric-card">
+        <span>Total de avaliações</span>
+        <strong id="prestador-total-avaliacoes">0</strong>
+      </div>
+      <div class="metric-card">
+        <span>Distribuição</span>
+        <div class="rating-distribution" id="prestador-distribuicao-avaliacoes">
+          <span>
+            5 estrelas:
+            <strong>0</strong>
+          </span>
+          <span>
+            4 estrelas:
+            <strong>0</strong>
+          </span>
+          <span>
+            3 estrelas:
+            <strong>0</strong>
+          </span>
+          <span>
+            2 estrelas:
+            <strong>0</strong>
+          </span>
+          <span>
+            1 estrela:
+            <strong>0</strong>
+          </span>
+        </div>
+      </div>
+    </section>
+    <section class="card table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Morador</th>
+            <th>Serviço</th>
+            <th>Nota</th>
+            <th>Descrição</th>
+            <th>Data</th>
+          </tr>
+        </thead>
+        <tbody id="tbAvaliacoesPrestador">
+          <tr>
+            <td colspan="5">
+              <div class="empty-state">
+                <h3>Nenhuma avaliação recebida</h3>
+                <p>Quando um morador avaliar depois do pagamento, o feedback aparece aqui.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
+  <script src="../assets/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar servico | Zlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/styles.css">
+  <link rel="icon" type="image/jpeg" href="../assets/img/favicon-zlar.jpeg">
+</head>
+
+<body>
+  <header class="zlar-header">
+    <a class="zlar-logo" href="painel.html">
+      <span class="brand-lockup">
+        <img class="zlar-symbol-img" src="../assets/img/zlar-logo-nova.jpeg" alt="Zlar">
+        <span class="brand-text">
+          <span>ZLAR</span>
+          <small>Morador</small>
+        </span>
+      </span>
+    </a>
+    <nav class="header-nav">
+      <a href="painel.html">Painel</a>
+      <a class="active" href="solicitar.html">Solicitar</a>
+      <a href="historico.html">Historico</a>
+    </nav>
+  </header>
+  <main class="page-wrap narrow">
+    <div class="page-title-block">
+      <div class="page-tag">Morador</div>
+      <h1 class="page-title">Solicitar servico</h1>
+      <p class="page-subtitle">O JavaScript envia essa solicitacao para o PHP.</p>
+    </div>
+    <section class="card">
+      <form class="form-grid" onsubmit="criarSolicitacaoHtml(event)">
+        <div class="field">
+          <label>
+            Categoria
+            <span class="req">*</span>
+          </label>
+          <select id="sol-categoria" required>
+            <option>Limpeza pesada</option>
+            <option>Limpeza diaria</option>
+            <option>Baba</option>
+            <option>Cuidador de idosos</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Data desejada</label>
+          <input id="sol-data" type="date" title="Escolha hoje ou uma data futura">
+        </div>
+        <div class="field col-span-2">
+          <label>
+            Endereco
+            <span class="req">*</span>
+          </label>
+          <input id="sol-endereco" type="text" required minlength="5" placeholder="Endereco do atendimento">
+        </div>
+        <div class="field col-span-2">
+          <label>
+            Descricao
+            <span class="req">*</span>
+          </label>
+          <textarea id="sol-descricao" required minlength="10" placeholder="Descreva o servico desejado"></textarea>
+        </div>
+        <div class="actions-row col-span-2 actions-row-end">
+          <button class="btn btn-primary" type="submit">Enviar solicitacao</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <div class="toast" id="toast"></div>
+  <script src="../assets/js/script.js"></script>
+</body>
+</html>
