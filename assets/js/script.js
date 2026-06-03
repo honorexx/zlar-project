@@ -1,4 +1,4 @@
-﻿// â”€â”€ DATA STORE â”€â”€
+// ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ DATA STORE ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
 var equipe = [];
 var prestadores = [];
 var editTarget = null;
@@ -83,6 +83,7 @@ function apiPost(endpoint, data) {
   return fetch(url, {
     method: 'POST',
     credentials: 'same-origin',
+    cache: 'no-store',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
   }).then(function(response) {
@@ -92,10 +93,10 @@ function apiPost(endpoint, data) {
         try {
           json = JSON.parse(text);
         } catch (error) {
-          throw new Error('A API retornou uma resposta invalida. Abra pelo XAMPP e confira se o Apache esta ligado.');
+          throw new Error('A API retornou uma resposta invalida em ' + url + ' (HTTP ' + response.status + ').');
         }
       } else {
-        throw new Error('API sem resposta em ' + url + '. Confira se o Apache e o MySQL estao ligados.');
+        throw new Error('API sem resposta em ' + url + ' (HTTP ' + response.status + '). Confira se o Apache e o MySQL estao ligados.');
       }
       if (!response.ok || json.ok === false) {
         throw new Error(json.message || 'Erro na requisicao.');
@@ -348,6 +349,25 @@ function cadastrarEquipeHtml(event) {
   }).catch(function(error) { showToast(error.message, 'error'); });
 }
 
+function getStoragePath(path) {
+  var parts = String(path || '').split('.');
+  var storageKey = parts.shift();
+  var value = getLocal(storageKey);
+
+  for (var i = 0; i < parts.length; i++) {
+    if (value == null) return '';
+    value = value[parts[i]];
+  }
+
+  return value == null || value === '' ? '' : value;
+}
+
+function renderDataBindings() {
+  document.querySelectorAll('[data-bind]').forEach(function(el) {
+    var value = getStoragePath(el.getAttribute('data-bind'));
+    el.textContent = value || '-';
+  });
+}
 function fillValue(id, value) {
   var el = document.getElementById(id);
   if (el) el.value = value || '';
@@ -603,7 +623,7 @@ function formatNota(value) {
 function starsHtml(nota) {
   var n = Number(nota || 0);
   var html = '';
-  for (var i = 1; i <= 5; i++) html += '<span class="' + (i <= n ? 'filled' : '') + '">★</span>';
+  for (var i = 1; i <= 5; i++) html += '<span class="' + (i <= n ? 'filled' : '') + '">Ã¢Ëœâ€¦</span>';
   return '<span class="stars-readonly" aria-label="' + n + ' de 5 estrelas">' + html + '</span>';
 }
 
@@ -752,12 +772,12 @@ function abrirAvaliacaoPagamento(id) {
   overlay.id = 'avaliacaoOverlay';
   overlay.innerHTML =
     '<div class="modal rating-modal">' +
-      '<div class="modal-header"><div><div class="section-label">Avaliacao do cliente</div><h2 class="modal-title">Como foi o atendimento?</h2></div><button class="modal-close" onclick="fecharAvaliacaoModal()">×</button></div>' +
+      '<div class="modal-header"><div><div class="section-label">Avaliacao do cliente</div><h2 class="modal-title">Como foi o atendimento?</h2></div><button class="modal-close" onclick="fecharAvaliacaoModal()">Ãƒâ€”</button></div>' +
       '<p class="page-subtitle">Sua avaliacao fica salva no perfil de ' + esc(solicitacao.prestador) + ' e ajuda outros moradores.</p>' +
       '<div id="avaliacaoEscolha" class="rating-choice actions-row"><button class="btn btn-primary" onclick="mostrarFormularioAvaliacao(' + id + ')">Sim, avaliar</button><button class="btn btn-secondary" onclick="dispensarAvaliacao(' + id + ')">Nao avaliar</button></div>' +
       '<form id="avaliacaoForm" class="rating-form" onsubmit="salvarAvaliacaoSolicitacao(event, ' + id + ')">' +
         '<input type="hidden" id="avaliacaoNota" value="5">' +
-        '<div class="field"><label>Nota</label><div class="star-input" id="starInput">' + [1,2,3,4,5].map(function(n) { return '<button type="button" class="active" onclick="selecionarNotaAvaliacao(' + n + ')">★</button>'; }).join('') + '</div></div>' +
+        '<div class="field"><label>Nota</label><div class="star-input" id="starInput">' + [1,2,3,4,5].map(function(n) { return '<button type="button" class="active" onclick="selecionarNotaAvaliacao(' + n + ')">Ã¢Ëœâ€¦</button>'; }).join('') + '</div></div>' +
         '<div class="field"><label>Descricao opcional</label><textarea id="avaliacaoComentario" placeholder="Conte como foi o atendimento"></textarea></div>' +
         '<div class="actions-row actions-row-end"><button type="button" class="btn btn-ghost" onclick="fecharAvaliacaoModal()">Cancelar</button><button class="btn btn-primary" type="submit">Enviar avaliacao</button></div>' +
       '</form>' +
@@ -1163,6 +1183,7 @@ document.addEventListener('DOMContentLoaded', function() {
   wireLogoutLinks();
   populateMoradorProfile();
   populatePrestadorProfile();
+  renderDataBindings();
   renderAdminMoradores();
   renderAdminPrestadores();
   renderChamadosPrestador();
