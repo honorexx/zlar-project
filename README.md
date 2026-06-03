@@ -7,7 +7,7 @@ Sistema simples para apresentar no XAMPP. Ele usa telas HTML, JavaScript, APIs P
 1. Deixe a pasta dentro de:
 
 ```text
-C:\xampp\htdocs\zlar site
+C:\xampp\htdocs\zlar_oficial
 ```
 
 2. Abra o XAMPP e ligue:
@@ -38,7 +38,7 @@ database_zlar.sql
 6. Teste a conexao:
 
 ```text
-http://localhost/zlar%20site/api/check_db.php
+http://localhost/zlar_oficial/api/check_db.php
 ```
 
 Se aparecer `"ok": true`, o banco esta funcionando.
@@ -46,7 +46,7 @@ Se aparecer `"ok": true`, o banco esta funcionando.
 7. Abra o projeto:
 
 ```text
-http://localhost/zlar%20site/
+http://localhost/zlar_oficial/
 ```
 
 ## Login de admin para apresentar
@@ -61,7 +61,7 @@ Morador e prestador podem ser criados pelas telas de cadastro.
 ## Arquivos principais
 
 ```text
-zlar site/
+zlar_oficial/
 ├── admin/              Telas HTML do administrador
 ├── api/                PHP que acessa o banco
 ├── assets/css/         Estilo do site
