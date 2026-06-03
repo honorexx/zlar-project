@@ -79,7 +79,8 @@ function apiPost(endpoint, data) {
     return Promise.reject(new Error('Abra pelo XAMPP: http://localhost/zlar_oficial/. Nao abra o arquivo direto pelo Windows.'));
   }
 
-  return fetch(apiBase() + endpoint, {
+  var url = apiBase() + endpoint;
+  return fetch(url, {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'Content-Type': 'application/json' },
@@ -94,7 +95,7 @@ function apiPost(endpoint, data) {
           throw new Error('A API retornou uma resposta invalida. Abra pelo XAMPP e confira se o Apache esta ligado.');
         }
       } else {
-        throw new Error('API sem resposta. Abra pelo XAMPP em http://localhost/zlar_oficial/ e confira se o Apache esta ligado.');
+        throw new Error('API sem resposta em ' + url + '. Confira se o Apache e o MySQL estao ligados.');
       }
       if (!response.ok || json.ok === false) {
         throw new Error(json.message || 'Erro na requisicao.');
