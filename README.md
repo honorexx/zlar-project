@@ -1,88 +1,84 @@
-# Zlar
+# Zlar Web em Java
 
-Sistema simples para apresentar no XAMPP. Ele usa telas HTML, JavaScript, APIs PHP e banco MySQL.
+Projeto web simples feito com Java puro.
 
-## Como rodar no XAMPP
+Ele abre no navegador, mas nao usa JavaScript, PHP, XAMPP, Maven, Spring ou banco de dados.
 
-1. Deixe a pasta dentro de:
+Os dados ficam na memoria enquanto o programa esta aberto. Quando fechar e abrir de novo, os cadastros voltam ao zero. Isso deixa o projeto facil de explicar.
 
-```text
-C:\xampp\htdocs\zlar_oficial
-```
+## Como rodar
 
-2. Abra o XAMPP e ligue:
+Abra o terminal nesta pasta e execute:
 
 ```text
-Apache
-MySQL
+compilar.bat
+rodar.bat
 ```
 
-3. Entre no phpMyAdmin:
+Depois acesse:
 
 ```text
-http://localhost/phpmyadmin
+http://localhost:8090
 ```
 
-4. Crie um banco chamado:
+Se a porta 8090 ja estiver ocupada, rode assim:
 
 ```text
-zlar
+java -DPORT=8091 -cp out\production\zlar_oficial ZlarApp
 ```
 
-5. Importe o arquivo:
-
-```text
-database_zlar.sql
-```
-
-6. Teste a conexao:
-
-```text
-http://localhost/zlar_oficial/api/check_db.php
-```
-
-Se aparecer `"ok": true`, o banco esta funcionando.
-
-7. Abra o projeto:
-
-```text
-http://localhost/zlar_oficial/
-```
-
-## Login de admin para apresentar
+## Login do administrador
 
 ```text
 Usuario: zlar2026
 Codigo: 747171
 ```
 
-Morador e prestador podem ser criados pelas telas de cadastro.
-
 ## Arquivos principais
 
 ```text
-zlar_oficial/
-├── admin/              Telas HTML do administrador
-├── api/                PHP que acessa o banco
-├── assets/css/         Estilo do site
-├── assets/js/          JavaScript das telas
-├── assets/img/         Logo e favicon
-├── morador/            Telas HTML do morador
-├── prestador/          Telas HTML do prestador
-├── database_zlar.sql   Banco para importar
-└── index.php           Entrada do projeto
+src/ZlarApp.java          Entrada do programa
+src/ServidorWeb.java      Rotas web do sistema
+src/Pagina.java           Carrega os templates HTML
+src/BancoDados.java       Listas que guardam os dados
+src/Usuario.java          Classe de usuario
+src/Solicitacao.java      Classe de solicitacao
+src/Chamado.java          Classe de chamado de suporte
+templates/                Paginas HTML separadas do Java
+web/estilo.css            Aparencia do sistema
+compilar.bat              Compila o projeto
+rodar.bat                 Inicia o servidor web
 ```
 
-## Onde alterar
+## O que o sistema faz
 
-- Aparencia: `assets/css/styles.css`
-- Comportamento das telas: `assets/js/script.js`
-- Conexao com o banco: `api/config.php`
-- Estrutura do banco: `database_zlar.sql`
-- Paginas do morador: `morador/*.html`
-- Paginas do prestador: `prestador/*.html`
-- Paginas do admin: `admin/*.html`
+- Cadastro de morador
+- Cadastro de prestador
+- Login de morador, prestador e administrador
+- Morador cria solicitacao de servico
+- Prestador aceita e conclui solicitacoes
+- Morador ve qual prestador aceitou
+- Morador paga a solicitacao depois que ela for concluida
+- Usuario abre chamado de suporte
+- Administrador ve usuarios e responde chamados
 
-## Observacao importante
+## Fluxo da solicitacao
 
-Abra sempre pelo XAMPP usando `http://localhost/...`. Se abrir os arquivos direto pelo Windows, o PHP e o banco nao funcionam.
+1. Morador abre uma solicitacao.
+2. Prestador ve a solicitacao do servico dele.
+3. Prestador clica em `Aceitar`.
+4. Morador ve o nome do prestador no painel.
+5. Prestador clica em `Concluir`.
+6. Morador clica em `Pagar`.
+
+## Como explicar para leigos
+
+O projeto foi separado em partes:
+
+1. `ZlarApp`: liga o sistema.
+2. `ServidorWeb`: recebe os acessos do navegador.
+3. `Pagina`: abre os arquivos da pasta `templates`.
+4. `BancoDados`: guarda os dados em listas.
+5. `Usuario`, `Solicitacao` e `Chamado`: representam as informacoes.
+
+Quando alguem clica em um botao, o navegador envia um formulario para o Java. O Java executa a regra e devolve uma pagina pronta.
