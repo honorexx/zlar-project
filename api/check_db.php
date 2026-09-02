@@ -20,8 +20,7 @@ try {
 } catch (Throwable $e) {
   json_response([
     'ok' => false,
-    'message' => 'Falha ao testar conexao. Confira se o MySQL do XAMPP esta ligado, se o banco zlar foi importado e se api/config.php esta correto.',
-    'debug' => $e->getMessage(),
+    'message' => 'Falha ao testar conexão. Confira o MySQL e as variáveis de ambiente do banco.',
     'connection' => [
       'host' => $connection['host'],
       'port' => $connection['port'],
