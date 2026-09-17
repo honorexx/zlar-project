@@ -27,7 +27,7 @@
     <section class="card auth-card">
       <div class="page-tag">Projeto Zlar</div>
       <h1 class="page-title">Pagina inicial</h1>
-      <p class="page-subtitle">Escolha uma area para acessar o sistema no XAMPP.</p>
+      <p class="page-subtitle">Escolha uma área para acessar o sistema.</p>
 
       <div class="actions-row">
         <a class="btn btn-primary" href="morador/login.html">Morador</a>

@@ -28,18 +28,21 @@
     <section class="card auth-card">
       <div class="page-tag">Admin</div>
       <h1 class="page-title">Recuperar acesso</h1>
-      <p class="page-subtitle">
-        Para este prototipo, o acesso admin padrao e usuario
-        <strong>zlar2026</strong>
-        e codigo
-        <strong>747171</strong>
-        .
-      </p>
-      <div class="actions-row">
-        <a class="btn btn-primary" href="login.html">Voltar ao login</a>
-      </div>
+      <p class="page-subtitle">Gere um código temporário usando seu usuário ou e-mail administrativo.</p>
+      <form class="form-grid cols-1" onsubmit="esqueciSenhaHtml(event, 'admin')">
+        <div class="field"><label>Usuário ou e-mail</label><input id="rec-email" required></div>
+        <div class="actions-row"><button class="btn btn-primary" type="submit">Gerar código</button><a class="btn btn-ghost" href="login.html">Voltar</a></div>
+      </form>
+      <div class="recovery-code" id="rec-codigo-gerado"></div>
+      <form class="form-grid cols-1" id="reset-password-form" style="display:none" onsubmit="redefinirSenhaHtml(event, 'admin')">
+        <div class="field"><label>Código temporário</label><input id="rec-codigo" required maxlength="6"></div>
+        <div class="field"><label>Novo código de acesso</label><input id="rec-nova-senha" type="password" required minlength="6"></div>
+        <div class="field"><label>Confirmar código</label><input id="rec-confirmar-senha" type="password" required minlength="6"></div>
+        <button class="btn btn-primary" type="submit">Trocar código</button>
+      </form>
     </section>
   </main>
-  <script src="../assets/js/script.js?v=20260603-loopback-redirect"></script>
+  <div class="toast" id="toast"></div>
+  <script src="../assets/js/script.js?v=20260917-review"></script>
 </body>
 </html>

@@ -1,62 +1,37 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 
 $data = input_json();
-$tipo = $data['tipo'] ?? '';
-$email = trim($data['email'] ?? '');
-$senha = trim($data['senha'] ?? '');
-
-if (!$tipo || !$email || !$senha) {
-  json_response(['ok' => false, 'message' => 'Informe tipo, e-mail e senha.'], 422);
+$tipo = trim((string)($data['tipo'] ?? ''));
+$identificador = trim((string)($data['email'] ?? ''));
+$senha = (string)($data['senha'] ?? '');
+if (!in_array($tipo, ['morador', 'prestador', 'admin'], true) || $identificador === '' || $senha === '') {
+  json_response(['ok' => false, 'message' => 'Informe usuário/e-mail e senha.'], 422);
 }
 
-$pdo = db();
-
 if ($tipo === 'admin') {
-  $stmt = $pdo->prepare('SELECT usuario, codigo, status FROM admin_acessos WHERE usuario = ? LIMIT 1');
-  $stmt->execute([$email]);
-  $admin = $stmt->fetch(PDO::FETCH_ASSOC);
-  if (!$admin || $admin['status'] !== 'ativo' || !hash_equals($admin['codigo'], $senha)) {
-    json_response(['ok' => false, 'message' => 'Usuario ou codigo de acesso invalido.'], 401);
+  $stmt = db()->prepare('SELECT id, usuario, nome, email, codigo_hash, status FROM admin_acessos WHERE usuario = ? LIMIT 1');
+  $stmt->execute([$identificador]);
+  $row = $stmt->fetch();
+  if (!$row || $row['status'] !== 'ativo' || !password_verify($senha, $row['codigo_hash'])) {
+    json_response(['ok' => false, 'message' => 'Usuário ou código de acesso inválido.'], 401);
   }
-  $user = [
-    'id' => 0,
-    'tipo' => 'admin',
-    'nome' => 'Administrador Zlar',
-    'email' => $admin['usuario']
-  ];
-  $_SESSION['zlar_user'] = $user;
+  $user = ['id' => (int)$row['id'], 'tipo' => 'admin', 'nome' => $row['nome'], 'email' => $row['email'], 'usuario' => $row['usuario']];
+  login_user($user);
   json_response(['ok' => true, 'user' => $user]);
 }
 
-$stmt = $pdo->prepare('SELECT id, nome, email, telefone, tipo, senha_hash FROM usuarios WHERE email = ? AND tipo = ? LIMIT 1');
-$stmt->execute([$email, $tipo]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user || !password_verify($senha, $user['senha_hash'])) {
-  json_response(['ok' => false, 'message' => 'Login invalido.'], 401);
+$stmt = db()->prepare('SELECT id, tipo, nome, email, telefone, senha_hash, status FROM usuarios WHERE email = ? AND tipo = ? LIMIT 1');
+$stmt->execute([mb_strtolower($identificador), $tipo]);
+$row = $stmt->fetch();
+if (!$row || !password_verify($senha, $row['senha_hash'])) {
+  json_response(['ok' => false, 'message' => 'E-mail ou senha inválidos.'], 401);
 }
-
-unset($user['senha_hash']);
-if ($tipo === 'prestador') {
-  $stmt = $pdo->prepare('SELECT * FROM prestadores WHERE usuario_id = ? LIMIT 1');
-  $stmt->execute([$user['id']]);
-  $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($perfil) {
-    unset($perfil['id'], $perfil['usuario_id']);
-    $user = array_merge($user, $perfil);
-  }
+if ($row['status'] !== 'ativo') {
+  json_response(['ok' => false, 'message' => 'Sua conta está inativa ou bloqueada.'], 403);
 }
-if ($tipo === 'morador') {
-  $stmt = $pdo->prepare('SELECT * FROM moradores WHERE usuario_id = ? LIMIT 1');
-  $stmt->execute([$user['id']]);
-  $perfil = $stmt->fetch(PDO::FETCH_ASSOC);
-  if ($perfil) {
-    unset($perfil['id'], $perfil['usuario_id']);
-    $user = array_merge($user, $perfil);
-  }
-}
-$_SESSION['zlar_user'] = $user;
-json_response(['ok' => true, 'user' => $user]);
-?>
+$user = refresh_session_user(['id' => (int)$row['id'], 'tipo' => $tipo]);
+login_user($user);
+json_response(['ok' => true, 'user' => public_user($user)]);

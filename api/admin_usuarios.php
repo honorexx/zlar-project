@@ -1,115 +1,43 @@
 <?php
+declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
-
-require_auth('admin');
-
-$data = input_json();
-$action = $data['action'] ?? 'listar';
-$tipo = $data['tipo'] ?? '';
-$pdo = db();
-
-if (!in_array($tipo, ['morador', 'prestador'], true)) {
-  json_response(['ok' => false, 'message' => 'Tipo de usuario invalido.'], 422);
+require_once __DIR__ . '/validators.php';
+$admin=require_auth('admin'); $data=input_json(); $action=$data['action']??'listar'; $tipo=(string)($data['tipo']??'');
+if(!in_array($tipo,['morador','prestador'],true)) json_response(['ok'=>false,'message'=>'Tipo de usuário inválido.'],422);
+$pdo=db();
+if($action==='listar') {
+  if($tipo==='morador') $sql='SELECT u.id,u.nome,u.email,u.telefone,u.status,m.cpf,m.endereco,m.nascimento FROM usuarios u JOIN moradores m ON m.usuario_id=u.id WHERE u.tipo="morador" ORDER BY u.nome';
+  else $sql='SELECT u.id,u.nome,u.email,u.telefone,u.status,p.servico,p.descricao,p.nascimento,p.status_aprovacao,p.nota_media,p.total_avaliacoes FROM usuarios u JOIN prestadores p ON p.usuario_id=u.id WHERE u.tipo="prestador" ORDER BY u.nome';
+  $rows=$pdo->query($sql)->fetchAll(); foreach($rows as &$r)$r['id']=(int)$r['id'];
+  json_response(['ok'=>true,'tipo'=>$tipo,'total'=>count($rows),'usuarios'=>$rows]);
 }
-
-if ($action === 'listar') {
-  if ($tipo === 'morador') {
-    $stmt = $pdo->prepare('
-      SELECT u.id, u.nome, u.email, u.telefone, u.status, m.cpf, m.endereco
-      FROM usuarios u
-      LEFT JOIN moradores m ON m.usuario_id = u.id
-      WHERE u.tipo = "morador"
-      ORDER BY u.nome
-    ');
-  } else {
-    $stmt = $pdo->prepare('
-      SELECT u.id, u.nome, u.email, u.telefone, u.status, p.servico, p.descricao, p.status_aprovacao
-      FROM usuarios u
-      LEFT JOIN prestadores p ON p.usuario_id = u.id
-      WHERE u.tipo = "prestador"
-      ORDER BY u.nome
-    ');
-  }
-  $stmt->execute();
-  $usuarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-  json_response([
-    'ok' => true,
-    'tipo' => $tipo,
-    'total' => count($usuarios),
-    'usuarios' => $usuarios
-  ]);
+$id=(int)($data['id']??0); if($id<1) json_response(['ok'=>false,'message'=>'Usuário inválido.'],422);
+if($action==='excluir') {
+  try { $stmt=$pdo->prepare('DELETE FROM usuarios WHERE id=? AND tipo=?');$stmt->execute([$id,$tipo]); }
+  catch(PDOException $e) { if($e->getCode()==='23000') json_response(['ok'=>false,'message'=>'Este usuário possui histórico e deve ser bloqueado, não excluído.'],409);throw $e; }
+  if($stmt->rowCount()!==1) json_response(['ok'=>false,'message'=>'Usuário não encontrado.'],404);
+  json_response(['ok'=>true,'message'=>'Usuário excluído.']);
 }
-
-if ($action === 'atualizar') {
-  $id = (int) ($data['id'] ?? 0);
-  $nome = trim($data['nome'] ?? '');
-  $email = trim($data['email'] ?? '');
-  $telefone = trim($data['telefone'] ?? '');
-  $status = trim($data['status'] ?? 'ativo');
-
-  if (!$id || !$nome || !$email || !$telefone) {
-    json_response(['ok' => false, 'message' => 'Preencha nome, e-mail e telefone.'], 422);
-  }
-  if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-    json_response(['ok' => false, 'message' => 'Informe um e-mail valido.'], 422);
-  }
-  if (!in_array($status, ['ativo', 'inativo', 'bloqueado'], true)) {
-    json_response(['ok' => false, 'message' => 'Status invalido.'], 422);
-  }
-
-  if ($tipo === 'morador') {
-    $cpf = trim($data['cpf'] ?? '');
-    $endereco = trim($data['endereco'] ?? '');
-    if (!$cpf || !$endereco) {
-      json_response(['ok' => false, 'message' => 'Preencha CPF e endereco.'], 422);
-    }
-  } else {
-    $servico = trim($data['servico'] ?? '');
-    $descricao = trim($data['descricao'] ?? '');
-    $statusAprovacao = trim($data['status_aprovacao'] ?? 'em_analise');
-    if (!$servico) {
-      json_response(['ok' => false, 'message' => 'Preencha o servico do prestador.'], 422);
-    }
-    if (!in_array($statusAprovacao, ['em_analise', 'aprovado', 'reprovado', 'bloqueado'], true)) {
-      json_response(['ok' => false, 'message' => 'Status de aprovacao invalido.'], 422);
-    }
-  }
-
-  try {
-    $pdo->beginTransaction();
-
-    $stmt = $pdo->prepare('UPDATE usuarios SET nome = ?, email = ?, telefone = ?, status = ? WHERE id = ? AND tipo = ?');
-    $stmt->execute([$nome, $email, $telefone, $status, $id, $tipo]);
-
-    if ($tipo === 'morador') {
-      $stmt = $pdo->prepare('UPDATE moradores SET cpf = ?, endereco = ? WHERE usuario_id = ?');
-      $stmt->execute([$cpf, $endereco, $id]);
+if($action!=='atualizar') json_response(['ok'=>false,'message'=>'Ação inválida.'],422);
+$nome=text_field($data,'nome',160);$email=mb_strtolower(text_field($data,'email',160));$telefone=text_field($data,'telefone',30);$status=(string)($data['status']??'');
+ensure_email($email);ensure_phone($telefone);if(!in_array($status,['ativo','inativo','bloqueado'],true))json_response(['ok'=>false,'message'=>'Status inválido.'],422);
+try {
+  transaction(function(PDO $pdo) use($data,$tipo,$id,$nome,$email,$telefone,$status) {
+    $check=$pdo->prepare('SELECT id FROM usuarios WHERE id=? AND tipo=? FOR UPDATE');
+    $check->execute([$id,$tipo]);
+    if (!$check->fetchColumn()) json_response(['ok'=>false,'message'=>'Usuário não encontrado.'],404);
+    $finalStatus=$status;
+    if($tipo==='morador') {
+      $cpf=text_field($data,'cpf',20);$endereco=text_field($data,'endereco',255);ensure_cpf($cpf);
+      $pdo->prepare('UPDATE moradores SET cpf=?,endereco=? WHERE usuario_id=?')->execute([$cpf,$endereco,$id]);
     } else {
-      $stmt = $pdo->prepare('UPDATE prestadores SET servico = ?, descricao = ?, status_aprovacao = ? WHERE usuario_id = ?');
-      $stmt->execute([$servico, $descricao, $statusAprovacao, $id]);
+      $servico=(string)($data['servico']??'');$descricao=optional_text($data,'descricao');$aprovacao=(string)($data['status_aprovacao']??'');
+      if(!in_array($servico,['Limpeza pesada','Limpeza diaria','Baba','Cuidador de idosos'],true)||!in_array($aprovacao,['em_analise','aprovado','reprovado','bloqueado'],true))json_response(['ok'=>false,'message'=>'Serviço ou aprovação inválidos.'],422);
+      if($aprovacao==='bloqueado')$finalStatus='bloqueado';
+      $pdo->prepare('UPDATE prestadores SET servico=?,descricao=?,status_aprovacao=? WHERE usuario_id=?')->execute([$servico,$descricao,$aprovacao,$id]);
     }
-
-    $pdo->commit();
-    json_response(['ok' => true, 'message' => 'Usuario atualizado com sucesso.']);
-  } catch (PDOException $e) {
-    if ($pdo->inTransaction()) $pdo->rollBack();
-    if ($e->getCode() === '23000') {
-      json_response(['ok' => false, 'message' => 'Ja existe usuario com este e-mail ou CPF.'], 409);
-    }
-    json_response(['ok' => false, 'message' => 'Nao foi possivel atualizar o usuario.'], 500);
-  }
-}
-
-if ($action === 'excluir') {
-  $id = (int) ($data['id'] ?? 0);
-  if (!$id) {
-    json_response(['ok' => false, 'message' => 'Usuario invalido.'], 422);
-  }
-  $stmt = $pdo->prepare('DELETE FROM usuarios WHERE id = ? AND tipo = ?');
-  $stmt->execute([$id, $tipo]);
-  json_response(['ok' => true, 'message' => 'Usuario excluido com sucesso.']);
-}
-
-json_response(['ok' => false, 'message' => 'Acao invalida.'], 422);
-?>
+    $stmt=$pdo->prepare('UPDATE usuarios SET nome=?,email=?,telefone=?,status=? WHERE id=? AND tipo=?');$stmt->execute([$nome,$email,$telefone,$finalStatus,$id,$tipo]);
+  });
+} catch(PDOException $e) { if($e->getCode()==='23000')json_response(['ok'=>false,'message'=>'E-mail ou CPF já cadastrado.'],409);throw $e; }
+json_response(['ok'=>true,'message'=>'Usuário atualizado.']);

@@ -1,0 +1,26 @@
+name: Zlar integration tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Start isolated application
+        run: docker compose up --build -d --wait
+      - name: PHP syntax
+        run: docker compose exec -T web sh -c 'find /var/www/html -name "*.php" -exec php -l {} \;'
+      - name: Complete workflow, including repeat execution
+        run: |
+          ./tests/e2e.sh
+          ./tests/e2e.sh
+      - name: Regression and authorization tests
+        run: python3 tests/regression.py
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --no-color
+      - name: Stop disposable environment
+        if: always()
+        run: docker compose down -v
