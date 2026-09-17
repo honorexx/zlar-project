@@ -2,3 +2,7 @@
 .gitignore
 tests
 README.md
+work
+.github
+.env
+.DS_Store
