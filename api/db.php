@@ -46,8 +46,8 @@ function db_connection_info(): array {
     'host' => $parts['host'] ?? $config['host'],
     'port' => (string)($parts['port'] ?? $config['port']),
     'name' => isset($parts['path']) ? ltrim($parts['path'], '/') : $config['name'],
-    'user' => $parts['user'] ?? $config['user'],
-    'password' => $parts['pass'] ?? $config['password'],
+    'user' => isset($parts['user']) ? rawurldecode($parts['user']) : $config['user'],
+    'password' => isset($parts['pass']) ? rawurldecode($parts['pass']) : $config['password'],
   ];
 }
 
@@ -74,6 +74,7 @@ function db(): PDO {
 }
 
 function text_field(array $data, string $key, int $max = 255): string {
+  if (isset($data[$key]) && !is_scalar($data[$key])) json_response(['ok'=>false,'message'=>"O campo {$key} deve ser texto."],422);
   $value = trim((string)($data[$key] ?? ''));
   if ($value === '') json_response(['ok' => false, 'message' => "Preencha o campo {$key}."], 422);
   if (mb_strlen($value) > $max) json_response(['ok' => false, 'message' => "O campo {$key} é muito longo."], 422);
@@ -81,6 +82,7 @@ function text_field(array $data, string $key, int $max = 255): string {
 }
 
 function optional_text(array $data, string $key, int $max = 2000): string {
+  if (isset($data[$key]) && !is_scalar($data[$key])) json_response(['ok'=>false,'message'=>"O campo {$key} deve ser texto."],422);
   $value = trim((string)($data[$key] ?? ''));
   if (mb_strlen($value) > $max) json_response(['ok' => false, 'message' => "O campo {$key} é muito longo."], 422);
   return $value;

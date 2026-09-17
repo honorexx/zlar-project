@@ -4,6 +4,7 @@ require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
 $data=input_json();$action=$data['action']??'gerar';$tipo=(string)($data['tipo']??'');$identificador=mb_strtolower(trim((string)($data['email']??'')));
 if(!in_array($tipo,['morador','prestador','admin'],true)||$identificador==='')json_response(['ok'=>false,'message'=>'Informe o identificador e o tipo de usuário.'],422);
+if (getenv('APP_ENV') !== 'local') json_response(['ok'=>false,'message'=>'Recuperação indisponível: o envio de e-mail ainda não foi configurado. Contate o administrador.'],503);
 $pdo=db();
 if($tipo==='admin'){$stmt=$pdo->prepare('SELECT id FROM admin_acessos WHERE (email=? OR usuario=?) AND status="ativo"');$stmt->execute([$identificador,$identificador]);}
 else{$stmt=$pdo->prepare('SELECT id FROM usuarios WHERE email=? AND tipo=? AND status="ativo"');$stmt->execute([$identificador,$tipo]);}
@@ -13,7 +14,7 @@ if($action==='gerar') {
   $pdo->prepare('UPDATE recuperacoes_senha SET usado=1 WHERE identificador=? AND tipo=? AND usado=0')->execute([$identificador,$tipo]);
   $pdo->prepare('INSERT INTO recuperacoes_senha (identificador,tipo,codigo_hash,expira_em) VALUES (?,?,?,?)')->execute([$identificador,$tipo,$hash,$expira]);
   $response=['ok'=>true,'message'=>'Código gerado. No ambiente local ele é exibido abaixo.','expira_em'=>$expira];
-  if((getenv('APP_ENV')?:'local')!=='production')$response['codigo']=$codigo;
+  $response['codigo']=$codigo;
   json_response($response,201);
 }
 if($action!=='redefinir')json_response(['ok'=>false,'message'=>'Ação inválida.'],422);

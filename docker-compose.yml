@@ -18,14 +18,14 @@ services:
   web:
     build: .
     environment:
-      APP_ENV: local
+      APP_ENV: ${APP_ENV:-local}
       MYSQL_HOST: mysql
       MYSQL_PORT: 3306
       MYSQL_DATABASE: zlar
       MYSQL_USER: zlar
       MYSQL_PASSWORD: zlar_local_password
     ports:
-      - "8080:80"
+      - "127.0.0.1:${ZLAR_PORT:-8080}:80"
     depends_on:
       mysql:
         condition: service_healthy

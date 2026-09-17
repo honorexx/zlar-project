@@ -24,6 +24,9 @@ $nome=text_field($data,'nome',160);$email=mb_strtolower(text_field($data,'email'
 ensure_email($email);ensure_phone($telefone);if(!in_array($status,['ativo','inativo','bloqueado'],true))json_response(['ok'=>false,'message'=>'Status inválido.'],422);
 try {
   transaction(function(PDO $pdo) use($data,$tipo,$id,$nome,$email,$telefone,$status) {
+    $check=$pdo->prepare('SELECT id FROM usuarios WHERE id=? AND tipo=? FOR UPDATE');
+    $check->execute([$id,$tipo]);
+    if (!$check->fetchColumn()) json_response(['ok'=>false,'message'=>'Usuário não encontrado.'],404);
     $finalStatus=$status;
     if($tipo==='morador') {
       $cpf=text_field($data,'cpf',20);$endereco=text_field($data,'endereco',255);ensure_cpf($cpf);

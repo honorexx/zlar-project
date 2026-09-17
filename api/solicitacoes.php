@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/validators.php';
 
 $data = input_json();
 $action = $data['action'] ?? 'listar';
@@ -57,9 +58,7 @@ if ($user['tipo']==='prestador') {
     $stmt=$pdo->prepare('UPDATE solicitacoes SET status="concluida",concluido_em=NOW() WHERE id=? AND prestador_id=? AND status="em_andamento"'); $stmt->execute([$id,$p['id']]);
     if ($stmt->rowCount()!==1) json_response(['ok'=>false,'message'=>'Somente um serviço em andamento pode ser concluído.'],409);
   } elseif ($action==='solicitar_pagamento') {
-    $raw=str_replace(['. ','.',','],['','','.'],trim((string)($data['valor']??'')));
-    $valor=(float)$raw; $pix=text_field($data,'pix',255); $obs=optional_text($data,'observacao');
-    if ($valor<=0 || $valor>99999999.99) json_response(['ok'=>false,'message'=>'Informe um valor de pagamento válido.'],422);
+    $valor=payment_amount($data['valor']??''); $pix=text_field($data,'pix',255); $obs=optional_text($data,'observacao');
     try { transaction(function(PDO $pdo) use($id,$p,$valor,$pix,$obs) {
       $stmt=$pdo->prepare('UPDATE solicitacoes SET status="pagamento_solicitado" WHERE id=? AND prestador_id=? AND status="concluida"'); $stmt->execute([$id,$p['id']]);
       if ($stmt->rowCount()!==1) throw new DomainException('transicao');

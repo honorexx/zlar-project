@@ -61,6 +61,12 @@ function require_auth(?string $tipo = null): array {
     unset($_SESSION['zlar_user']);
     json_response(['ok' => false, 'message' => 'Sua conta está inativa ou bloqueada.'], 403);
   }
+  $version = credential_version($fresh);
+  if (!isset($_SESSION['credential_version']) || !hash_equals($_SESSION['credential_version'], $version)) {
+    $_SESSION = [];
+    session_destroy();
+    json_response(['ok'=>false,'message'=>'Sua credencial mudou. Faça login novamente.'],401);
+  }
   $_SESSION['zlar_user'] = $fresh;
   $_SESSION['last_activity'] = time();
   return $fresh;
@@ -74,9 +80,19 @@ function require_approved_provider(): array {
   return $user;
 }
 
+function credential_version(array $user): string {
+  $sql = $user['tipo'] === 'admin'
+    ? 'SELECT codigo_hash FROM admin_acessos WHERE id=?'
+    : 'SELECT senha_hash FROM usuarios WHERE id=?';
+  $stmt = db()->prepare($sql);
+  $stmt->execute([$user['id']]);
+  return hash('sha256', (string)$stmt->fetchColumn());
+}
+
 function login_user(array $user): void {
   session_regenerate_id(true);
   $_SESSION['zlar_user'] = $user;
+  $_SESSION['credential_version'] = credential_version($user);
   $_SESSION['login_at'] = time();
   $_SESSION['last_activity'] = time();
 }

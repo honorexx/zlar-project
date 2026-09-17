@@ -6,6 +6,7 @@ require_once __DIR__ . '/validators.php';
 
 $data = input_json();
 $user = require_auth();
+if (!in_array($user['tipo'], ['morador', 'prestador'], true)) json_response(['ok' => false, 'message' => 'Perfil não autorizado.'], 403);
 $action = $data['action'] ?? 'obter';
 if ($action === 'obter') json_response(['ok' => true, 'user' => public_user($user)]);
 if ($action !== 'atualizar') json_response(['ok' => false, 'message' => 'Ação inválida.'], 422);
