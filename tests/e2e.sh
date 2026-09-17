@@ -2,7 +2,8 @@
 set -euo pipefail
 
 BASE_URL="${BASE_URL:-http://localhost:8080}"
-RUN_ID="$(date +%s)"
+RUN_ID="$(date +%s)-$$"
+TEST_CPF="$(python3 -c 'import secrets; n=[secrets.randbelow(10) for _ in range(9)]; n.append((sum(a*b for a,b in zip(n,range(10,1,-1)))*10%11)%10); n.append((sum(a*b for a,b in zip(n,range(11,1,-1)))*10%11)%10); s="".join(map(str,n)); print(f"{s[:3]}.{s[3:6]}.{s[6:9]}-{s[9:]}")')"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 MORADOR_COOKIE="$TMP_DIR/morador.cookie"
@@ -27,7 +28,7 @@ assert_ok() {
 
 assert_error() {
   local json="$1" label="$2"
-  if [[ "$(jq -r '.ok // false' <<<"$json")" == "true" ]]; then
+  if ! jq -e '.ok == false' <<<"$json" >/dev/null; then
     echo "FALHOU: $label deveria ser negado" >&2
     jq . <<<"$json" >&2
     exit 1
@@ -38,7 +39,7 @@ assert_error() {
 M_EMAIL="morador.${RUN_ID}@teste.local"
 P_EMAIL="prestador.${RUN_ID}@teste.local"
 
-json="$(request "$MORADOR_COOKIE" cadastrar_morador.php "$(jq -nc --arg e "$M_EMAIL" '{nome:"Morador Teste",email:$e,telefone:"(41) 99999-1000",cpf:"529.982.247-25",nascimento:"1990-01-01",endereco:"Rua do Teste, 100",senha:"Senha123",confirmar_senha:"Senha123"}')")"
+json="$(request "$MORADOR_COOKIE" cadastrar_morador.php "$(jq -nc --arg e "$M_EMAIL" --arg cpf "$TEST_CPF" '{nome:"Morador Teste",email:$e,telefone:"(41) 99999-1000",cpf:$cpf,nascimento:"1990-01-01",endereco:"Rua do Teste, 100",senha:"Senha123",confirmar_senha:"Senha123"}')")"
 assert_ok "$json" 'cadastro do morador e sessão própria'
 
 json="$(request "$PRESTADOR_COOKIE" cadastrar_prestador.php "$(jq -nc --arg e "$P_EMAIL" '{nome:"Prestador Teste",email:$e,telefone:"(41) 99999-2000",nascimento:"1988-02-02",servico:"Limpeza pesada",descricao:"Profissional de teste",senha:"Senha123",confirmar_senha:"Senha123"}')")"
@@ -80,7 +81,7 @@ json="$(request "$PRESTADOR_COOKIE" avaliacoes.php '{"action":"listar"}')"
 assert_ok "$json" 'avaliação aparece para o prestador'
 [[ "$(jq -r --argjson id "$S_ID" '.avaliacoes[] | select(.solicitacaoId==$id) | .nota' <<<"$json")" == '5' ]]
 
-json="$(request "$MORADOR_COOKIE" perfil.php "$(jq -nc --arg e "$M_EMAIL" '{action:"atualizar",nome:"Morador Atualizado",email:$e,telefone:"(41) 98888-1000",endereco:"Rua Atualizada, 200"}')")"
+json="$(request "$MORADOR_COOKIE" perfil.php "$(jq -nc --arg e "$M_EMAIL" --arg cpf "$TEST_CPF" '{action:"atualizar",nome:"Morador Atualizado",email:$e,telefone:"(41) 98888-1000",endereco:"Rua Atualizada, 200"}')")"
 assert_ok "$json" 'morador edita perfil no MySQL'
 json="$(request "$PRESTADOR_COOKIE" perfil.php '{"action":"atualizar","nome":"Prestador Atualizado","telefone":"(41) 98888-2000","servico":"Limpeza pesada","descricao":"Perfil atualizado"}')"
 assert_ok "$json" 'prestador edita perfil no MySQL'
@@ -111,6 +112,10 @@ json="$(request "$ADMIN_RECOVERY_COOKIE" esqueci_senha.php '{"action":"gerar","t
 ADMIN_CODE="$(jq -r '.codigo' <<<"$json")"
 json="$(request "$ADMIN_RECOVERY_COOKIE" esqueci_senha.php "$(jq -nc --arg c "$ADMIN_CODE" '{action:"redefinir",tipo:"admin",email:"zlar2026",codigo:$c,senha:"747171",confirmar_senha:"747171"}')")"
 assert_ok "$json" 'restaura o código administrativo local documentado'
+json="$(request "$ADMIN_COOKIE" login.php '{"tipo":"admin","email":"zlar2026","senha":"747171"}')"
+assert_ok "$json" 'admin autentica novamente após redefinição'
+json="$(request "$PRESTADOR_COOKIE" login.php "$(jq -nc --arg e "$P_EMAIL" '{tipo:"prestador",email:$e,senha:"NovaSenha456"}')")"
+assert_ok "$json" 'prestador autentica novamente após redefinição'
 
 json="$(request "$ADMIN_COOKIE" admin_usuarios.php "$(jq -nc --argjson id "$P_ID" --arg e "$P_EMAIL" '{action:"atualizar",tipo:"prestador",id:$id,nome:"Prestador Atualizado",email:$e,telefone:"(41) 98888-2000",status:"bloqueado",servico:"Limpeza pesada",descricao:"Perfil atualizado",status_aprovacao:"aprovado"}')")"
 assert_ok "$json" 'administrador bloqueia prestador'
@@ -118,8 +123,8 @@ json="$(request "$PRESTADOR_COOKIE" session.php '{"tipo":"prestador"}')"
 assert_error "$json" 'bloqueio invalida sessão existente do prestador'
 
 json="$(request "$ADMIN_COOKIE" admin_usuarios.php '{"action":"listar","tipo":"morador"}')"
-M_ID="$(jq -r --arg e "$M_EMAIL" '.usuarios[] | select(.email==$e) | .id' <<<"$json")"
-json="$(request "$ADMIN_COOKIE" admin_usuarios.php "$(jq -nc --argjson id "$M_ID" --arg e "$M_EMAIL" '{action:"atualizar",tipo:"morador",id:$id,nome:"Morador Atualizado",email:$e,telefone:"(41) 98888-1000",status:"bloqueado",cpf:"529.982.247-25",endereco:"Rua Atualizada, 200"}')")"
+M_ID="$(jq -r --arg e "$M_EMAIL" --arg cpf "$TEST_CPF" '.usuarios[] | select(.email==$e) | .id' <<<"$json")"
+json="$(request "$ADMIN_COOKIE" admin_usuarios.php "$(jq -nc --argjson id "$M_ID" --arg e "$M_EMAIL" --arg cpf "$TEST_CPF" '{action:"atualizar",tipo:"morador",id:$id,nome:"Morador Atualizado",email:$e,telefone:"(41) 98888-1000",status:"bloqueado",cpf:$cpf,endereco:"Rua Atualizada, 200"}')")"
 assert_ok "$json" 'administrador bloqueia morador'
 json="$(request "$MORADOR_COOKIE" session.php '{"tipo":"morador"}')"
 assert_error "$json" 'bloqueio invalida sessão existente do morador'
